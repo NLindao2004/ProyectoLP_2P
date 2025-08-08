@@ -8,31 +8,19 @@ export const routes: Routes = [
   },
   {
     path: 'home',
-    //loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent)
+    loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent)
   },
   {
-    path: 'catalog',
-    //loadComponent: () => import('./pages/catalog/catalog.component').then(m => m.CatalogComponent)
+    path: 'catalogo',
+    loadComponent: () => import('./pages/catalogo/catalogo.component').then(m => m.CatalogoComponent)
   },
   {
-    path: 'register',
-    //loadComponent: () => import('./pages/register-species/register-species.component').then(m => m.RegisterSpeciesComponent)
+    path: 'mapa',
+    loadComponent: () => import('./pages/mapa/mapa.component').then(m => m.MapaComponent)
   },
   {
-    path: 'species/:id',
-    //loadComponent: () => import('./pages/species-detail/species-detail.component').then(m => m.SpeciesDetailComponent)
-  },
-  {
-    path: 'map',
-    //loadComponent: () => import('./pages/map/map.component').then(m => m.MapComponent)
-  },
-  {
-    path: 'reports',
-    //loadComponent: () => import('./pages/reports/reports.component').then(m => m.ReportsComponent)
-  },
-  {
-    path: 'about',
-    //loadComponent: () => import('./pages/about/about.component').then(m => m.AboutComponent)
+    path: 'registro-especie',
+    loadComponent: () => import('./pages/registro-especie/registro-especie.component').then(m => m.RegistroEspecieComponent)
   },
   {
     path: '**',

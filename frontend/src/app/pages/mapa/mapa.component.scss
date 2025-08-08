@@ -1,0 +1,685 @@
+/* filepath: c:\Users\Abeni\OneDrive\Documentos\Archivos ESPOL\Septimo Semestre\Lenguajes de Programacion\Proyectos\ProyectoLP_2P\frontend\src\app\pages\mapa\mapa.component.scss */
+// Import the same styles from home component
+.mapa-container {
+  min-height: 100vh;
+  font-family: 'Arial', sans-serif;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+// Header Styles (same as home)
+.header {
+  background: white;
+  padding: 1rem 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  .nav-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    img {
+      width: 40px;
+      height: 40px;
+    }
+
+    span {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #2d5a27;
+    }
+  }
+
+  .nav-menu {
+    display: flex;
+    gap: 2rem;
+
+    .nav-link {
+      text-decoration: none;
+      color: #333;
+      font-weight: 500;
+      transition: all 0.3s;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+
+      &:hover {
+        color: #2d5a27;
+      }
+
+      &.active {
+        background: #2d5a27;
+        color: white;
+        border-radius: 20px;
+      }
+    }
+  }
+
+  .signup-btn {
+    background: #2d5a27;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.3s;
+
+    &:hover {
+      background: #1e3d1a;
+    }
+  }
+}
+
+// Main Content Styles
+.main-content {
+  min-height: 80vh;
+  padding: 2rem 0;
+  background: #f8fdf8;
+}
+
+.title-section {
+  text-align: center;
+  margin-bottom: 3rem;
+
+  h1 {
+    font-size: 2.5rem;
+    color: #2d5a27;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+  }
+
+  .subtitle {
+    font-size: 1.2rem;
+    color: #666;
+    font-weight: 300;
+  }
+}
+
+.filter-section {
+  margin-bottom: 2rem;
+
+  .filter-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    border: 2px solid #e0e0e0;
+    background: white;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-width: 120px;
+
+    &:hover {
+      border-color: #2d5a27;
+      transform: translateY(-2px);
+    }
+
+    &.active {
+      border-color: #2d5a27;
+      background: #2d5a27;
+      color: white;
+    }
+
+    .icon-globe::before { content: "🌍"; }
+    .icon-location::before { content: "📍"; }
+    .icon-calendar::before { content: "📅"; }
+    .icon-list::before { content: "📋"; }
+
+    i {
+      font-size: 1.5rem;
+      font-style: normal;
+    }
+
+    span {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+  }
+
+  .search-section {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Ecosistema Filter (Radio Buttons)
+.ecosistema-filter {
+  .radio-group {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .radio-option {
+    input[type="radio"] {
+      display: none;
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      padding: 1rem 1.5rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 15px;
+      transition: all 0.3s;
+      background: white;
+
+      &:hover {
+        border-color: #2d5a27;
+        transform: translateY(-2px);
+      }
+    }
+
+    .radio-custom {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #ddd;
+      border-radius: 50%;
+      position: relative;
+      transition: all 0.3s;
+
+      &::after {
+        content: '';
+        width: 10px;
+        height: 10px;
+        background: #2d5a27;
+        border-radius: 50%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        transition: transform 0.3s;
+      }
+    }
+
+    .radio-text {
+      font-weight: 500;
+      color: #333;
+    }
+
+    input[type="radio"]:checked + label {
+      border-color: #2d5a27;
+      background: #f0f8f0;
+
+      .radio-custom {
+        border-color: #2d5a27;
+
+        &::after {
+          transform: translate(-50%, -50%) scale(1);
+        }
+      }
+
+      .radio-text {
+        color: #2d5a27;
+      }
+    }
+  }
+}
+
+// Región Filter (Dropdown)
+.region-filter {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+
+  .region-dropdown {
+    flex: 1;
+    max-width: 400px;
+    padding: 1rem 1.5rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 15px;
+    font-size: 1rem;
+    background: white;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.3s;
+
+    &:focus {
+      border-color: #2d5a27;
+    }
+
+    option {
+      padding: 0.5rem;
+    }
+  }
+
+  .apply-btn {
+    padding: 1rem 2rem;
+    background: #2d5a27;
+    color: white;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.3s;
+
+    &:hover {
+      background: #1e3d1a;
+    }
+  }
+}
+
+// Fecha Filter (Date Picker)
+.fecha-filter {
+  .date-inputs {
+    display: flex;
+    gap: 2rem;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .date-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    label {
+      font-weight: 500;
+      color: #333;
+      font-size: 0.9rem;
+    }
+
+    .date-input {
+      padding: 1rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.3s;
+      min-width: 180px;
+
+      &:focus {
+        border-color: #2d5a27;
+      }
+    }
+  }
+
+  .apply-btn {
+    display: block;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    background: #2d5a27;
+    color: white;
+    border: none;
+    border-radius: 15px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.3s;
+
+    &:hover {
+      background: #1e3d1a;
+    }
+  }
+}
+
+// Ver Resultados Filter (Legend)
+.resultados-filter {
+  .legend-container {
+    text-align: center;
+
+    h4 {
+      color: #2d5a27;
+      margin-bottom: 1.5rem;
+      font-size: 1.2rem;
+    }
+
+    .legend-items {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      justify-items: center;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.8rem 1rem;
+      background: #f9f9f9;
+      border-radius: 10px;
+      min-width: 180px;
+
+      .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        border: 2px solid white;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+
+        &.red { background: #f44336; }
+        &.orange { background: #ff9800; }
+        &.yellow { background: #ffeb3b; }
+        &.green { background: #4caf50; }
+        &.blue { background: #2196f3; }
+        &.purple { background: #9c27b0; }
+      }
+
+      .legend-text {
+        font-size: 0.9rem;
+        color: #333;
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+// Map Section Styles
+.map-section {
+  margin-bottom: 3rem;
+
+  .map-container-inner {
+    position: relative;
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    height: 500px;
+  }
+
+  .map-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+    position: relative;
+    background-image:
+      linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px),
+      linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  .map-markers {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .marker {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    border: 3px solid white;
+    cursor: pointer;
+    transform: translate(-50%, -50%);
+    transition: all 0.3s;
+
+    &:hover {
+      transform: translate(-50%, -50%) scale(1.3);
+      z-index: 10;
+    }
+
+    &.red { background: #f44336; }
+    &.green { background: #4caf50; }
+    &.blue { background: #2196f3; }
+    &.orange { background: #ff9800; }
+    &.purple { background: #9c27b0; }
+    &.yellow { background: #ffeb3b; border-color: #f57f17; }
+
+    &::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 0.5rem;
+      border-radius: 5px;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    &:hover::after {
+      opacity: 1;
+    }
+  }
+
+  .map-controls {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .zoom-btn {
+    width: 40px;
+    height: 40px;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #333;
+    transition: all 0.3s;
+
+    &:hover {
+      background: #2d5a27;
+      color: white;
+      border-color: #2d5a27;
+    }
+  }
+}
+
+// Statistics Section
+.statistics-section {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+
+  .stat-card {
+    text-align: center;
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    min-width: 150px;
+    transition: transform 0.3s;
+
+    &:hover {
+      transform: translateY(-5px);
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #2d5a27;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      font-size: 1.1rem;
+      color: #666;
+      font-weight: 500;
+    }
+  }
+}
+
+// Info Section
+.info-section {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+
+  h3 {
+    font-size: 1.8rem;
+    color: #2d5a27;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    font-size: 1.1rem;
+    color: #666;
+    line-height: 1.6;
+  }
+}
+
+// Footer Styles
+.footer {
+  background: #2d5a27;
+  color: white;
+  padding: 3rem 0 1rem;
+
+  .footer-content {
+    .footer-section {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 3rem;
+      margin-bottom: 2rem;
+    }
+
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      img {
+        width: 40px;
+        height: 40px;
+      }
+
+      span {
+        font-size: 1.5rem;
+        font-weight: bold;
+      }
+    }
+
+    .footer-links {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+    }
+
+    .link-group {
+      h4 {
+        margin-bottom: 1rem;
+        font-size: 1.1rem;
+      }
+
+      a {
+        display: block;
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        margin-bottom: 0.5rem;
+        transition: color 0.3s;
+
+        &:hover {
+          color: white;
+        }
+      }
+    }
+
+    .app-links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+
+      img {
+        width: 120px;
+        height: auto;
+      }
+    }
+
+    .social-links {
+      text-align: center;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+
+      a {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        margin: 0 1rem;
+        transition: color 0.3s;
+
+        &:hover {
+          color: white;
+        }
+      }
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .filter-tabs {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .radio-group {
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+
+  .region-filter {
+    flex-direction: column !important;
+    gap: 1rem !important;
+
+    .region-dropdown {
+      max-width: none !important;
+    }
+  }
+
+  .date-inputs {
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+
+  .legend-items {
+    grid-template-columns: 1fr !important;
+    gap: 0.8rem !important;
+  }
+
+  .statistics-section {
+    gap: 1rem !important;
+  }
+
+  .footer-links {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .footer-section {
+    grid-template-columns: 1fr !important;
+  }
+}

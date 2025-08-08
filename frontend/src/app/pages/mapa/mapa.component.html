@@ -1,0 +1,257 @@
+<div class="mapa-container">
+  <!-- Header/Navigation (igual que home) -->
+  <header class="header">
+    <div class="container">
+      <div class="nav-wrapper">
+        <div class="logo">
+          <img src="assets/Icon_TerraVerde.png" alt="TerraVerde">
+          <span>TerraVerde</span>
+        </div>
+        <nav class="nav-menu">
+          <a routerLink="/home" class="nav-link" routerLinkActive="active">Inicio</a>
+          <a routerLink="/catalogo" class="nav-link" routerLinkActive="active">Catálogo de Especies</a>
+          <a routerLink="/mapa" class="nav-link" routerLinkActive="active">Mapa de Avistamientos</a>
+          <a routerLink="/registro-especie" class="nav-link" routerLinkActive="active">Registros</a>
+        </nav>
+        <button class="signup-btn">Iniciar Sesión</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      <!-- Title Section -->
+      <div class="title-section">
+        <h1>Mapa de avistamientos.</h1>
+        <p class="subtitle">Visualiza registros geográficos.</p>
+      </div>
+
+      <!-- Filter Section -->
+      <div class="filter-section">
+        <div class="filter-tabs">
+          <button class="filter-tab" [class.active]="activeFilter === 'ecosistema'" (click)="setActiveFilter('ecosistema')">
+            <i class="icon-globe"></i>
+            <span>Ecosistema</span>
+          </button>
+          <button class="filter-tab" [class.active]="activeFilter === 'region'" (click)="setActiveFilter('region')">
+            <i class="icon-location"></i>
+            <span>Región</span>
+          </button>
+          <button class="filter-tab" [class.active]="activeFilter === 'fecha'" (click)="setActiveFilter('fecha')">
+            <i class="icon-calendar"></i>
+            <span>Fecha</span>
+          </button>
+          <button class="filter-tab" [class.active]="activeFilter === 'resultados'" (click)="setActiveFilter('resultados')">
+            <i class="icon-list"></i>
+            <span>Ver resultados</span>
+          </button>
+        </div>
+
+        <!-- Dynamic Search Section -->
+        <div class="search-section">
+
+          <!-- Ecosistema Filter -->
+          <div *ngIf="activeFilter === 'ecosistema'" class="ecosistema-filter">
+            <div class="radio-group">
+              <div class="radio-option">
+                <input type="radio"
+                       id="acuaticos"
+                       name="ecosistema"
+                       value="acuaticos"
+                       [(ngModel)]="selectedEcosistema">
+                <label for="acuaticos">
+                  <span class="radio-custom"></span>
+                  <span class="radio-text">Acuáticos</span>
+                </label>
+              </div>
+              <div class="radio-option">
+                <input type="radio"
+                       id="terrestres"
+                       name="ecosistema"
+                       value="terrestres"
+                       [(ngModel)]="selectedEcosistema">
+                <label for="terrestres">
+                  <span class="radio-custom"></span>
+                  <span class="radio-text">Terrestres</span>
+                </label>
+              </div>
+              <div class="radio-option">
+                <input type="radio"
+                       id="hibridos"
+                       name="ecosistema"
+                       value="hibridos"
+                       [(ngModel)]="selectedEcosistema">
+                <label for="hibridos">
+                  <span class="radio-custom"></span>
+                  <span class="radio-text">Híbridos</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Región Filter -->
+          <div *ngIf="activeFilter === 'region'" class="region-filter">
+            <select class="region-dropdown" [(ngModel)]="selectedRegion">
+              <option value="">Seleccionar región...</option>
+              <option value="america-sur">América del Sur</option>
+              <option value="america-norte">América del Norte</option>
+              <option value="europa">Europa</option>
+              <option value="asia">Asia</option>
+              <option value="africa">África</option>
+              <option value="oceania">Oceanía</option>
+              <option value="antarctica">Antártida</option>
+            </select>
+            <button class="apply-btn">Aplicar</button>
+          </div>
+
+          <!-- Fecha Filter -->
+          <div *ngIf="activeFilter === 'fecha'" class="fecha-filter">
+            <div class="date-inputs">
+              <div class="date-group">
+                <label for="fecha-inicio">Desde:</label>
+                <input type="date"
+                       id="fecha-inicio"
+                       class="date-input"
+                       [(ngModel)]="fechaInicio">
+              </div>
+              <div class="date-group">
+                <label for="fecha-fin">Hasta:</label>
+                <input type="date"
+                       id="fecha-fin"
+                       class="date-input"
+                       [(ngModel)]="fechaFin">
+              </div>
+            </div>
+            <button class="apply-btn">Buscar</button>
+          </div>
+
+          <!-- Ver Resultados Filter -->
+          <div *ngIf="activeFilter === 'resultados'" class="resultados-filter">
+            <div class="legend-container">
+              <h4>Leyenda de especies:</h4>
+              <div class="legend-items">
+                <div class="legend-item">
+                  <span class="legend-color red"></span>
+                  <span class="legend-text">En peligro crítico</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color orange"></span>
+                  <span class="legend-text">En peligro</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color yellow"></span>
+                  <span class="legend-text">Vulnerable</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color green"></span>
+                  <span class="legend-text">Preocupación menor</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color blue"></span>
+                  <span class="legend-text">No evaluado</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-color purple"></span>
+                  <span class="legend-text">Datos insuficientes</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Map Section -->
+      <div class="map-section">
+        <div class="map-container-inner">
+          <!-- Aquí irá el mapa real, por ahora un placeholder -->
+          <div class="map-placeholder">
+            <div class="map-markers">
+              <!-- Marcadores de ejemplo -->
+              <div class="marker red" style="top: 20%; left: 15%;" data-tooltip="Quetzal - En peligro crítico"></div>
+              <div class="marker green" style="top: 35%; left: 25%;" data-tooltip="Cecropia - Preocupación menor"></div>
+              <div class="marker orange" style="top: 45%; left: 40%;" data-tooltip="Rana Dorada - En peligro"></div>
+              <div class="marker yellow" style="top: 60%; left: 30%;" data-tooltip="Jaguar - Vulnerable"></div>
+              <div class="marker purple" style="top: 25%; left: 60%;" data-tooltip="Orquídea - Datos insuficientes"></div>
+              <div class="marker blue" style="top: 55%; left: 70%;" data-tooltip="Tucán - No evaluado"></div>
+              <div class="marker green" style="top: 40%; left: 80%;" data-tooltip="Ceiba - Preocupación menor"></div>
+            </div>
+            <div class="map-controls">
+              <button class="zoom-btn zoom-in">+</button>
+              <button class="zoom-btn zoom-out">-</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics Section -->
+      <div class="statistics-section">
+        <div class="stat-card">
+          <div class="stat-number">30+</div>
+          <div class="stat-label">Acuáticos</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">32+</div>
+          <div class="stat-label">Terrestres</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number">10K</div>
+          <div class="stat-label">Híbridos</div>
+        </div>
+      </div>
+
+      <!-- Info Section -->
+      <div class="info-section">
+        <h3>Explora especies registradas</h3>
+        <p>En este mapa interactivo puedes visualizar los lugares donde se han avistado y registrado diferentes especies en ecosistemas terrestres, acuáticos y aéreos. Haz clic en los marcadores para ver información más detallada sobre los avistamientos según los intereses.</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer (igual que home) -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-section">
+          <div class="footer-logo">
+            <img src="assets/Icon_TerraVerde.png" alt="TerraVerde">
+            <span>TerraVerde</span>
+          </div>
+          <div class="footer-links">
+            <div class="link-group">
+              <h4>Acerca de Nosotros</h4>
+              <a href="#">Nuestra Historia</a>
+              <a href="#">Contacto</a>
+              <a href="#">FAQ</a>
+            </div>
+            <div class="link-group">
+              <h4>Plataforma</h4>
+              <a href="#">Política de Privacidad</a>
+              <a href="#">Términos de Servicio</a>
+              <a href="#">Soporte</a>
+            </div>
+            <div class="link-group">
+              <h4>Enlaces Importantes</h4>
+              <a href="#">Guía de Usuario</a>
+              <a href="#">Metodología</a>
+              <a href="#">Colaboradores</a>
+            </div>
+            <div class="link-group">
+              <h4>Descarga Nuestra App</h4>
+              <div class="app-links">
+                <img src="assets/Icon_TerraVerde.png" alt="App Store">
+                <img src="assets/Icon_TerraVerde.png" alt="Google Play">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="social-links">
+          <a href="#">LinkedIn</a>
+          <a href="#">Twitter</a>
+          <a href="#">YouTube</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>

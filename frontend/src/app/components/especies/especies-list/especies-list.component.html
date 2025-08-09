@@ -1,0 +1,139 @@
+<div class="especies-container">
+  <!-- Header -->
+  <div class="header">
+    <h2>🌿 Catálogo de Especies</h2>
+    <div class="header-actions">
+      <button class="btn-primary" (click)="showCreateForm = true">
+        ➕ Nueva Especie
+      </button>
+      <button class="btn-secondary" (click)="refreshData()">
+        🔄 Actualizar
+      </button>
+    </div>
+  </div>
+
+  <!-- Búsqueda y Filtros -->
+  <div class="filters">
+    <div class="search-box">
+      <input 
+        type="text" 
+        placeholder="🔍 Buscar especies..." 
+        [(ngModel)]="searchTerm"
+        (input)="onSearch()"
+        class="search-input">
+    </div>
+    
+    <div class="filter-group">
+      <select [(ngModel)]="selectedFamilia" (change)="onFamiliaChange()" class="filter-select">
+        <option value="">Todas las familias</option>
+        <option *ngFor="let familia of familias" [value]="familia">
+          {{ familia }}
+        </option>
+      </select>
+      
+      <select [(ngModel)]="selectedEstado" (change)="onEstadoChange()" class="filter-select">
+        <option value="">Todos los estados</option>
+        <option value="Preocupación menor">Preocupación menor</option>
+        <option value="Vulnerable">Vulnerable</option>
+        <option value="En peligro">En peligro</option>
+        <option value="En peligro crítico">En peligro crítico</option>
+        <option value="No evaluado">No evaluado</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Cargando especies...</p>
+  </div>
+
+  <!-- Estadísticas -->
+  <div class="stats" *ngIf="!loading">
+    <div class="stat-card">
+      <span class="stat-number">{{ totalEspecies }}</span>
+      <span class="stat-label">Especies Total</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number">{{ especiesFiltradas.length }}</span>
+      <span class="stat-label">Mostrando</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number">{{ familias.length }}</span>
+      <span class="stat-label">Familias</span>
+    </div>
+  </div>
+
+  <!-- Lista de Especies -->
+  <div class="especies-grid" *ngIf="!loading">
+    <div 
+      *ngFor="let especie of especiesFiltradas; trackBy: trackByEspecie" 
+      class="especie-card"
+      [class.selected]="selectedEspecie?.id === especie.id"
+      (click)="selectEspecie(especie)">
+      
+      <div class="card-header">
+        <h3 class="nombre-cientifico">{{ especie.nombre_cientifico }}</h3>
+        <span class="familia">{{ especie.familia }}</span>
+      </div>
+      
+      <div class="card-body">
+        <p class="nombre-vulgar">
+          <strong>Nombre vulgar:</strong> {{ especie.nombre_vulgar }}
+        </p>
+        <p class="habitat">
+          <strong>Hábitat:</strong> {{ especie.habitat }}
+        </p>
+        <p class="estado-conservacion" [class]="getEstadoClass(especie.estado_conservacion)">
+          <strong>Estado:</strong> {{ especie.estado_conservacion }}
+        </p>
+        <p class="coordenadas" *ngIf="especie.coordenadas">
+          <strong>Ubicación:</strong> 
+          {{ especie.coordenadas.latitud | number:'1.4-4' }}, 
+          {{ especie.coordenadas.longitud | number:'1.4-4' }}
+        </p>
+        <p class="fecha-registro">
+          <strong>Registrado:</strong> {{ especie.fecha_registro | date:'dd/MM/yyyy' }}
+        </p>
+      </div>
+      
+      <div class="card-actions">
+        <button class="btn-edit" (click)="editEspecie(especie); $event.stopPropagation()">
+          ✏️ Editar
+        </button>
+        <button class="btn-delete" (click)="deleteEspecie(especie); $event.stopPropagation()">
+          🗑️ Eliminar
+        </button>
+        <button class="btn-map" (click)="viewOnMap(especie); $event.stopPropagation()">
+          🗺️ Ver en Mapa
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && especiesFiltradas.length === 0" class="empty-state">
+    <div class="empty-icon">🌱</div>
+    <h3>No se encontraron especies</h3>
+    <p *ngIf="searchTerm || selectedFamilia || selectedEstado">
+      Intenta cambiar los filtros de búsqueda
+    </p>
+    <p *ngIf="!searchTerm && !selectedFamilia && !selectedEstado">
+      ¡Comienza agregando tu primera especie!
+    </p>
+    <button class="btn-primary" (click)="showCreateForm = true">
+      ➕ Agregar Primera Especie
+    </button>
+  </div>
+
+  <!-- Formulario de creación (modal simple) -->
+  <div *ngIf="showCreateForm" class="modal-overlay" (click)="showCreateForm = false">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <app-especies-form 
+        [especie]="null"
+        (especieCreated)="onEspecieCreated($event)"
+        (formClosed)="showCreateForm = false">
+      </app-especies-form>
+    </div>
+  </div>
+</div>

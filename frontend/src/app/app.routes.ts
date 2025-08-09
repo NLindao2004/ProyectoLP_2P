@@ -15,6 +15,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/catalogo/catalogo.component').then(m => m.CatalogoComponent)
   },
   {
+    path: 'registro-especie',  
+    loadComponent: () => import('./pages/registro-especie/registro-especie.component').then(m => m.RegistroEspecieComponent)
+  },
+  {
     path: 'mapa',
     loadComponent: () => import('./pages/mapa/mapa.component').then(m => m.MapaComponent)
   },

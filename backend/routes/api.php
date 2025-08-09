@@ -1,114 +1,112 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\SpeciesController;
-use App\Http\Controllers\Api\ReportController;
-use App\Http\Controllers\Api\AuthController;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
-*/
+// Configurar CORS para Angular
+header('Access-Control-Allow-Origin: http://localhost:4200');
+header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Content-Type: application/json');
 
-// Rutas públicas
-Route::get('/health', function () {
-    return response()->json([
-        'status' => 'OK',
-        'service' => 'Terraverde API',
-        'version' => '1.0.0',
-        'timestamp' => now()->toISOString()
-    ]);
-});
+// Manejar preflight OPTIONS
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
-// Rutas de autenticación
-Route::prefix('auth')->group(function () {
-    Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
-    Route::post('/refresh', [AuthController::class, 'refresh']);
-    
-    Route::middleware('auth:api')->group(function () {
-        Route::post('/logout', [AuthController::class, 'logout']);
-        Route::get('/me', [AuthController::class, 'me']);
-    });
-});
+require_once __DIR__ . '/../vendor/autoload.php';
 
-// Rutas de especies (públicas para consulta)
-Route::prefix('species')->group(function () {
-    // Rutas públicas de solo lectura
-    Route::get('/', [SpeciesController::class, 'index']);
-    Route::get('/search', [SpeciesController::class, 'search']);
-    Route::get('/statistics', [SpeciesController::class, 'statistics']);
-    Route::get('/{id}', [SpeciesController::class, 'show']);
-    
-    // Rutas protegidas para modificación
-    Route::middleware('auth:api')->group(function () {
-        Route::post('/', [SpeciesController::class, 'store']);
-        Route::put('/{id}', [SpeciesController::class, 'update']);
-        Route::delete('/{id}', [SpeciesController::class, 'destroy']);
-    });
-});
+// Obtener la ruta solicitada
+$request_uri = $_SERVER['REQUEST_URI'];
+$path = parse_url($request_uri, PHP_URL_PATH);
+$method = $_SERVER['REQUEST_METHOD'];
 
-// Rutas de reportes
-Route::prefix('reports')->group(function () {
-    Route::post('/data', [ReportController::class, 'getReportData']);
-    Route::post('/csv', [ReportController::class, 'generateCSV']);
-    Route::post('/pdf', [ReportController::class, 'generatePDF']);
-});
+// Remover el prefijo del proyecto si existe
+$base_path = '/ProyectoLP_2P/backend/public';
+if (strpos($path, $base_path) === 0) {
+    $path = substr($path, strlen($base_path));
+}
 
-// Rutas de utilidades
-Route::prefix('utils')->group(function () {
-    Route::get('/ecosystems', function () {
-        return response()->json([
-            'success' => true,
-            'data' => [
-                ['value' => 'forest', 'label' => 'Bosque', 'icon' => '🌲'],
-                ['value' => 'lake', 'label' => 'Lago', 'icon' => '🏞️'],
-                ['value' => 'beach', 'label' => 'Playa', 'icon' => '🏖️']
-            ]
-        ]);
-    });
-    
-    Route::get('/regions', function () {
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'Costa',
-                'Sierra',
-                'Amazonia',
-                'Galápagos'
-            ]
-        ]);
-    });
-});
+// Enrutador de APIs para Terraverde
+try {
+    switch (true) {
+        // === ESPECIES ===
+        case preg_match('/^\/api\/especies$/', $path):
+            require_once __DIR__ . '/../src/Controllers/EspeciesController.php';
+            $controller = new EspeciesController();
+            $controller->handleRequest($method);
+            break;
 
-// Middleware para todas las rutas API
-Route::middleware(['cors'])->group(function () {
-    // Las rutas ya definidas arriba se incluyen automáticamente
-});
+        case preg_match('/^\/api\/especies\/(\w+)$/', $path, $matches):
+            require_once __DIR__ . '/../src/Controllers/EspeciesController.php';
+            $controller = new EspeciesController();
+            $controller->handleRequest($method, $matches[1]);
+            break;
 
-// Ruta catch-all para API no encontrada
-Route::fallback(function(){
-    return response()->json([
+        // === USUARIOS ===
+        case preg_match('/^\/api\/usuarios$/', $path):
+            require_once __DIR__ . '/../src/Controllers/UsuariosController.php';
+            $controller = new UsuariosController();
+            $controller->handleRequest($method);
+            break;
+
+        case preg_match('/^\/api\/usuarios\/(\w+)$/', $path, $matches):
+            require_once __DIR__ . '/../src/Controllers/UsuariosController.php';
+            $controller = new UsuariosController();
+            $controller->handleRequest($method, $matches[1]);
+            break;
+
+        // === REPORTES ===
+        case preg_match('/^\/api\/reportes$/', $path):
+            require_once __DIR__ . '/../src/Controllers/ReportesController.php';
+            $controller = new ReportesController();
+            $controller->handleRequest($method);
+            break;
+
+        case preg_match('/^\/api\/reportes\/(\w+)$/', $path, $matches):
+            require_once __DIR__ . '/../src/Controllers/ReportesController.php';
+            $controller = new ReportesController();
+            $controller->handleRequest($method, $matches[1]);
+            break;
+
+        // === DASHBOARD/STATS ===
+        case preg_match('/^\/api\/dashboard$/', $path):
+            require_once __DIR__ . '/../src/Controllers/DashboardController.php';
+            $controller = new DashboardController();
+            $controller->handleRequest($method);
+            break;
+
+        // === HEALTH CHECK ===
+        case preg_match('/^\/api\/health$/', $path):
+            require_once __DIR__ . '/../src/Controllers/HealthController.php';
+            $controller = new HealthController();
+            $controller->handleRequest($method);
+            break;
+
+        // === RUTA NO ENCONTRADA ===
+        default:
+            http_response_code(404);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Endpoint no encontrado',
+                'path' => $path,
+                'available_endpoints' => [
+                    'GET/POST/PUT/DELETE /api/especies',
+                    'GET/POST/PUT/DELETE /api/usuarios', 
+                    'GET/POST/PUT/DELETE /api/reportes',
+                    'GET /api/dashboard',
+                    'GET /api/health'
+                ]
+            ]);
+            break;
+    }
+
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode([
         'success' => false,
-        'message' => 'Endpoint no encontrado',
-        'available_endpoints' => [
-            'GET /api/health' => 'Estado del servicio',
-            'POST /api/auth/register' => 'Registro de usuario',
-            'POST /api/auth/login' => 'Inicio de sesión',
-            'GET /api/species' => 'Listar especies',
-            'POST /api/species' => 'Crear especie (requiere auth)',
-            'GET /api/species/{id}' => 'Obtener especie',
-            'POST /api/reports/csv' => 'Generar reporte CSV',
-            'POST /api/reports/pdf' => 'Generar reporte PDF',
-            'GET /api/utils/ecosystems' => 'Listar ecosistemas',
-            'GET /api/utils/regions' => 'Listar regiones'
-        ]
-    ], 404);
-});
+        'message' => 'Error interno del servidor',
+        'error' => $e->getMessage()
+    ]);
+}
+
+?>

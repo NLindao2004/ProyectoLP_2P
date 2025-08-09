@@ -1,0 +1,132 @@
+.catalogo-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e8f5e8 0%, #f1f8e9 100%);
+}
+
+.hero-section {
+  padding: 60px 20px;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  align-items: center;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 30px;
+    padding: 40px 20px;
+    text-align: center;
+  }
+}
+
+.hero-content {
+  h1 {
+    font-size: 3rem;
+    color: #2e7d32;
+    margin-bottom: 20px;
+    font-weight: 700;
+    line-height: 1.2;
+    
+    @media (max-width: 768px) {
+      font-size: 2.2rem;
+    }
+  }
+  
+  .hero-description {
+    font-size: 1.2rem;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    
+    @media (max-width: 768px) {
+      font-size: 1.1rem;
+    }
+  }
+}
+
+.hero-stats {
+  display: flex;
+  gap: 30px;
+  
+  @media (max-width: 768px) {
+    justify-content: center;
+    gap: 20px;
+  }
+  
+  .stat-item {
+    text-align: center;
+    
+    .stat-number {
+      display: block;
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #4caf50;
+      line-height: 1;
+      
+      @media (max-width: 768px) {
+        font-size: 2rem;
+      }
+    }
+    
+    .stat-label {
+      display: block;
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 5px;
+    }
+  }
+}
+
+.hero-image {
+  position: relative;
+  height: 200px;
+  
+  @media (max-width: 768px) {
+    height: 150px;
+  }
+  
+  .floating-icon {
+    position: absolute;
+    font-size: 3rem;
+    animation: float 3s ease-in-out infinite;
+    
+    &:nth-child(1) {
+      top: 20%;
+      left: 20%;
+      animation-delay: 0s;
+    }
+    
+    &:nth-child(2) {
+      top: 10%;
+      right: 10%;
+      animation-delay: 0.5s;
+    }
+    
+    &:nth-child(3) {
+      bottom: 30%;
+      left: 10%;
+      animation-delay: 1s;
+    }
+    
+    &:nth-child(4) {
+      bottom: 10%;
+      right: 20%;
+      animation-delay: 1.5s;
+    }
+  }
+}
+
+.especies-section {
+  background: white;
+  min-height: 50vh;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}

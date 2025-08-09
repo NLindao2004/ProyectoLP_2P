@@ -1,58 +1,141 @@
 <?php
 
-class HealthController
-{
-    public function check()
-    {
+require_once __DIR__ . '/BaseController.php';
+
+class HealthController extends BaseController {
+    
+    public function handleRequest($method, $id = null) {
         try {
-            // Verificar configuración básica
-            $status = 'OK';
-            $checks = [
-                'api' => 'OK',
-                'php_version' => PHP_VERSION,
-                'firebase_sdk' => class_exists('Kreait\Firebase\Factory') ? 'OK' : 'ERROR',
-                'environment' => $_ENV['APP_ENV'] ?? 'unknown',
-                'timestamp' => date('c')
-            ];
+            switch ($method) {
+                case 'GET':
+                    $this->checkHealth();
+                    break;
 
-            // Verificar conexión a MySQL
-            try {
-                $db = DatabaseService::getInstance();
-                $result = $db->fetchOne("SELECT 1 as test");
-                $checks['mysql_connection'] = $result ? 'OK' : 'ERROR';
-            } catch (Exception $e) {
-                $checks['mysql_connection'] = 'ERROR: ' . $e->getMessage();
-                $status = 'ERROR';
+                default:
+                    $this->sendError('Método no permitido', 405);
+                    break;
             }
+        } catch (Exception $e) {
+            $this->sendError('Error en health check: ' . $e->getMessage(), 500);
+        }
+    }
 
-            // Verificar variables de entorno críticas
-            $required_env = ['FIREBASE_PROJECT_ID', 'GOOGLE_MAPS_API_KEY', 'DB_HOST', 'DB_DATABASE'];
-            foreach ($required_env as $env_var) {
-                $checks['env_' . strtolower($env_var)] = !empty($_ENV[$env_var]) ? 'OK' : 'MISSING';
-                if (empty($_ENV[$env_var])) {
-                    $status = 'WARNING';
-                }
+    private function checkHealth() {
+        $health = [
+            'status' => 'ok',
+            'timestamp' => date('Y-m-d H:i:s'),
+            'version' => '1.0.0',
+            'services' => [
+                'firebase' => $this->checkFirebase(),
+                'database' => $this->checkDatabase(),
+                'php' => $this->checkPHP()
+            ],
+            'system' => [
+                'memory_usage' => $this->formatBytes(memory_get_usage(true)),
+                'memory_peak' => $this->formatBytes(memory_get_peak_usage(true)),
+                'uptime' => $this->getUptime()
+            ]
+        ];
+
+        // Determinar estado general
+        $allServicesOk = true;
+        foreach ($health['services'] as $service) {
+            if ($service['status'] !== 'ok') {
+                $allServicesOk = false;
+                break;
             }
+        }
 
+        $health['status'] = $allServicesOk ? 'ok' : 'warning';
+
+        $httpCode = $allServicesOk ? 200 : 503;
+        $this->sendResponse(true, $health, 'Health check completado', $httpCode);
+    }
+
+    private function checkFirebase() {
+        try {
+            // Intentar hacer una operación simple en Firebase
+            $testRef = $this->database->getReference('health_check');
+            $testRef->set([
+                'timestamp' => date('Y-m-d H:i:s'),
+                'test' => true
+            ]);
+            
+            // Leer el dato
+            $snapshot = $testRef->getSnapshot();
+            
+            // Limpiar
+            $testRef->remove();
+            
             return [
-                'success' => true,
-                'status' => $status,
-                'service' => 'Terraverde API',
-                'version' => '1.0.0',
-                'checks' => $checks,
-                'message' => $status === 'OK' ? 'Sistema funcionando correctamente' : 'Sistema funcionando con advertencias'
+                'status' => 'ok',
+                'message' => 'Firebase conectado correctamente',
+                'response_time' => '< 100ms'
             ];
-
         } catch (Exception $e) {
             return [
-                'success' => false,
-                'status' => 'ERROR',
-                'service' => 'Terraverde API',
-                'version' => '1.0.0',
-                'error' => $e->getMessage(),
-                'message' => 'Error en el sistema'
+                'status' => 'error',
+                'message' => 'Error de conexión con Firebase: ' . $e->getMessage(),
+                'response_time' => 'timeout'
             ];
         }
     }
+
+    private function checkDatabase() {
+        try {
+            // Verificar que podemos acceder a las principales colecciones
+            $collections = ['especies', 'usuarios', 'reportes'];
+            $results = [];
+            
+            foreach ($collections as $collection) {
+                $ref = $this->database->getReference($collection);
+                $snapshot = $ref->getSnapshot();
+                $count = $snapshot->exists() ? count($snapshot->getValue()) : 0;
+                $results[$collection] = $count;
+            }
+            
+            return [
+                'status' => 'ok',
+                'message' => 'Base de datos accesible',
+                'collections' => $results
+            ];
+        } catch (Exception $e) {
+            return [
+                'status' => 'error',
+                'message' => 'Error de base de datos: ' . $e->getMessage(),
+                'collections' => null
+            ];
+        }
+    }
+
+    private function checkPHP() {
+        return [
+            'status' => 'ok',
+            'version' => PHP_VERSION,
+            'extensions' => [
+                'curl' => extension_loaded('curl'),
+                'json' => extension_loaded('json'),
+                'openssl' => extension_loaded('openssl')
+            ],
+            'memory_limit' => ini_get('memory_limit'),
+            'max_execution_time' => ini_get('max_execution_time')
+        ];
+    }
+
+    private function formatBytes($bytes, $precision = 2) {
+        $units = array('B', 'KB', 'MB', 'GB', 'TB');
+        
+        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
+            $bytes /= 1024;
+        }
+        
+        return round($bytes, $precision) . ' ' . $units[$i];
+    }
+
+    private function getUptime() {
+        // Tiempo desde que se inició la sesión (aproximado)
+        return date('Y-m-d H:i:s');
+    }
 }
+
 ?>

@@ -1,0 +1,35 @@
+# Entorno Virtual PHP
+/vendor/
+/composer.lock
+/composer.phar
+/composer-home/
+
+# Logs
+*.log
+/logs/
+
+# Archivos de entorno
+/.env.local
+/.env.production
+
+# Scripts generados
+/activate-env.bat
+/start-dev-server.bat
+
+# Cache
+/cache/
+/tmp/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# IDE
+/.vscode/
+/.idea/
+*.swp
+*.swo
+
+# Backups
+*.bak
+*.backup

@@ -14,16 +14,26 @@ class HealthController
                 'environment' => $_ENV['APP_ENV'] ?? 'unknown',
                 'timestamp' => date('c')
             ];
-            
+
+            // Verificar conexión a MySQL
+            try {
+                $db = DatabaseService::getInstance();
+                $result = $db->fetchOne("SELECT 1 as test");
+                $checks['mysql_connection'] = $result ? 'OK' : 'ERROR';
+            } catch (Exception $e) {
+                $checks['mysql_connection'] = 'ERROR: ' . $e->getMessage();
+                $status = 'ERROR';
+            }
+
             // Verificar variables de entorno críticas
-            $required_env = ['FIREBASE_PROJECT_ID', 'GOOGLE_MAPS_API_KEY'];
+            $required_env = ['FIREBASE_PROJECT_ID', 'GOOGLE_MAPS_API_KEY', 'DB_HOST', 'DB_DATABASE'];
             foreach ($required_env as $env_var) {
                 $checks['env_' . strtolower($env_var)] = !empty($_ENV[$env_var]) ? 'OK' : 'MISSING';
                 if (empty($_ENV[$env_var])) {
                     $status = 'WARNING';
                 }
             }
-            
+
             return [
                 'success' => true,
                 'status' => $status,
@@ -32,7 +42,7 @@ class HealthController
                 'checks' => $checks,
                 'message' => $status === 'OK' ? 'Sistema funcionando correctamente' : 'Sistema funcionando con advertencias'
             ];
-            
+
         } catch (Exception $e) {
             return [
                 'success' => false,

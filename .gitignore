@@ -106,3 +106,25 @@ Thumbs.db
 
 # Backend specific
 vendor/
+
+# Dependencias de Composer
+backend/vendor/
+
+# Variables de entorno
+backend/.env
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Cache de Composer
+backend/composer.phar

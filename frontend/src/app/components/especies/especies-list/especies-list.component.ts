@@ -22,25 +22,25 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
   especiesFiltradas: Especie[] = [];
   selectedEspecie: Especie | null = null;
   loading = false;
-  
+
   // Filtros
   searchTerm = '';
   selectedFamilia = '';
   selectedEstado = '';
   familias: string[] = [];
-  
+
   // Estado del formulario
   showCreateForm = false;
-  
+
   // Estadísticas
   totalEspecies = 0;
-  
+
   // Comentarios
   nuevoComentario: { [key: string]: string } = {};
   caracteresRestantes: { [key: string]: number } = {};
   cargandoComentario: { [key: string]: boolean } = {};
   comentarios: { [key: string]: any[] } = {};
-  
+
   private destroy$ = new Subject<void>();
 
   constructor(private especiesService: EspeciesService) {}
@@ -166,7 +166,7 @@ agregarComentario(especieId: string) {
 
   const nuevoComent: Comentario = {
     texto: this.nuevoComentario[especieId].trim(),
-    usuario: 'Usuario', // Reemplaza con tu lógica de usuario real
+    autor: 'Usuario', // Reemplaza con tu lógica de usuario real
     fecha: new Date().toISOString()
   };
 
@@ -202,7 +202,7 @@ agregarComentario(especieId: string) {
   // Métodos para reportes (existente)
   generateReport(format: 'csv' | 'pdf'): void {
     const especiesReporte = this.especiesFiltradas;
-    
+
     if (especiesReporte.length === 0) {
       alert('No hay datos para generar el reporte');
       return;
@@ -226,30 +226,30 @@ agregarComentario(especieId: string) {
     try {
       const doc = new jsPDF();
       const fileName = this.generateFileName('pdf');
-      
+
       let y = 20;
       const lineHeight = 7;
       const pageHeight = doc.internal.pageSize.height;
-      
+
       doc.setFontSize(18);
       doc.text('Reporte de Especies', 14, y);
       y += lineHeight * 2;
-      
+
       doc.setFontSize(10);
       doc.text(`Generado el: ${new Date().toLocaleDateString()}`, 14, y);
       y += lineHeight;
-      
+
       const filters = this.getActiveFilters();
       doc.text(`Filtros aplicados: ${filters}`, 14, y);
       y += lineHeight * 2;
-      
+
       doc.setFontSize(8);
       especies.forEach(especie => {
         if (y > pageHeight - 20) {
           doc.addPage();
           y = 20;
         }
-        
+
         doc.text(`Nombre Científico: ${especie.nombre_cientifico || '-'}`, 14, y);
         y += lineHeight;
         doc.text(`Nombre Vulgar: ${especie.nombre_vulgar || '-'}`, 14, y);
@@ -260,13 +260,13 @@ agregarComentario(especieId: string) {
         y += lineHeight;
         doc.text(`Hábitat: ${especie.habitat || '-'}`, 14, y);
         y += lineHeight;
-        doc.text(`Ubicación: ${especie.coordenadas ? 
+        doc.text(`Ubicación: ${especie.coordenadas ?
           `${especie.coordenadas.latitud?.toFixed(4)}, ${especie.coordenadas.longitud?.toFixed(4)}` : '-'}`, 14, y);
         y += lineHeight * 2;
       });
-      
+
       doc.save(fileName);
-      
+
     } catch (error) {
       console.error('Error al generar PDF:', error);
       this.generateCSV(especies);
@@ -283,14 +283,14 @@ agregarComentario(especieId: string) {
 
   private generateFileName(extension: string): string {
     let fileName = 'reporte_especies';
-    const normalize = (str: string) => 
+    const normalize = (str: string) =>
       str.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
        .replace(/[^a-zA-Z0-9]/g, '_');
 
     if (this.searchTerm) fileName += `_busqueda-${normalize(this.searchTerm)}`;
     if (this.selectedFamilia) fileName += `_familia-${normalize(this.selectedFamilia)}`;
     if (this.selectedEstado) fileName += `_estado-${normalize(this.selectedEstado)}`;
-    
+
     fileName += `_${new Date().toISOString().slice(0, 10)}.${extension}`;
     return fileName;
   }
@@ -307,9 +307,9 @@ agregarComentario(especieId: string) {
       'Longitud',
       'Fecha Registro'
     ];
-    
+
     csvContent += headers.join(',') + '\n';
-    
+
     especies.forEach(especie => {
       const row = [
         this.escapeCsv(especie.nombre_cientifico),
@@ -321,10 +321,10 @@ agregarComentario(especieId: string) {
         especie.coordenadas?.longitud || '',
         this.escapeCsv(especie.fecha_registro || '')
       ];
-      
+
       csvContent += row.join(',') + '\n';
     });
-    
+
     return csvContent;
   }
 

@@ -1,3 +1,10 @@
+export interface Comentario {
+  id?: string;
+  texto: string;
+  autor: string;
+  fecha: string;
+}
+
 export interface Especie {
   id?: string;
   nombre_cientifico: string;
@@ -14,6 +21,7 @@ export interface Especie {
   fecha_actualizacion?: string;
   registrado_por: string;
   activo?: boolean;
+  comentarios?: Comentario[]; // ✅ Agregar esta línea
 }
 
 export interface EspecieFormData {
@@ -58,7 +66,7 @@ export enum EstadoConservacion {
 // Familias más comunes en Ecuador
 export const FAMILIAS_COMUNES = [
   'Orchidaceae',
-  'Asteraceae', 
+  'Asteraceae',
   'Fabaceae',
   'Rubiaceae',
   'Melastomataceae',

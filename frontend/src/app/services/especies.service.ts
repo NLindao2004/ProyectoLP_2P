@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
-import { Especie } from '../models/especies.model';
+import { Especie, Comentario } from '../models/especies.model'; // ✅ Agregar Comentario aquí
 
 export interface ApiResponse {
   success: boolean;
@@ -301,6 +301,32 @@ export class EspeciesService {
         };
       })
     );
+  }
+
+  // ✅ AGREGAR MÉTODO para comentarios (que tu compañero necesita)
+  agregarComentario(especieId: string, comentario: Comentario): Observable<Especie> {
+    this.loadingSubject.next(true);
+
+    return this.http.post<any>(`${this.API_URL}/${especieId}/comentarios`, comentario, this.httpOptions)
+      .pipe(
+        map(response => {
+          if (response.success) {
+            return this.convertirBackendAFrontend(response.data);
+          } else {
+            throw new Error(response.message || 'Error al agregar comentario');
+          }
+        }),
+        tap(especieActualizada => {
+          const especiesActuales = this.especiesSubject.value;
+          const index = especiesActuales.findIndex(e => e.id === especieId);
+          if (index >= 0) {
+            especiesActuales[index] = especieActualizada;
+            this.especiesSubject.next([...especiesActuales]);
+          }
+          this.loadingSubject.next(false);
+        }),
+        catchError(this.handleError.bind(this))
+      );
   }
 
   // ✅ MANEJO DE ERRORES

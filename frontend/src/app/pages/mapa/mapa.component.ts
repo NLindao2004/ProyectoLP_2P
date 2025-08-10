@@ -5,10 +5,16 @@ import { GoogleMapsModule, GoogleMap, MapMarker } from '@angular/google-maps';
 import { EspeciesService } from '../../services/especies.service';
 import { Especie } from '../../models/especies.model';
 
-interface RegionInfo {
+interface ProvinciaInfo {
   name: string;
   center: google.maps.LatLngLiteral;
   zoom: number;
+  bounds: {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+  };
 }
 
 @Component({
@@ -25,7 +31,7 @@ export class MapaComponent implements OnInit {
   mapOptions: google.maps.MapOptions = {
     center: { lat: -1.831239, lng: -78.183406 },
     zoom: 7,
-    mapTypeId: 'roadmap', // Mejor contraste para los iconos
+    mapTypeId: 'roadmap',
     styles: [
       {
         featureType: "poi",
@@ -43,15 +49,159 @@ export class MapaComponent implements OnInit {
   // Datos
   especies: Especie[] = [];
   especiesFiltradas: Especie[] = [];
-  regiones: RegionInfo[] = [
-    { name: 'Costa', center: { lat: -1.045, lng: -80.456 }, zoom: 8 },
-    { name: 'Sierra', center: { lat: -1.831239, lng: -78.183406 }, zoom: 8 },
-    { name: 'Amazonia', center: { lat: -1.5, lng: -77.5 }, zoom: 7 },
-    { name: 'Galapagos', center: { lat: -0.7893, lng: -90.9542 }, zoom: 9 }
+
+  // ✅ PROVINCIAS DE ECUADOR con coordenadas precisas
+  provincias: ProvinciaInfo[] = [
+    {
+      name: 'Pichincha',
+      center: { lat: -0.1807, lng: -78.4678 },
+      zoom: 10,
+      bounds: { north: 0.37, south: -1.05, east: -77.85, west: -79.23 }
+    },
+    {
+      name: 'Guayas',
+      center: { lat: -2.1962, lng: -79.8862 },
+      zoom: 9,
+      bounds: { north: -1.27, south: -3.04, east: -79.16, west: -80.96 }
+    },
+    {
+      name: 'Azuay',
+      center: { lat: -2.8969, lng: -79.0067 },
+      zoom: 10,
+      bounds: { north: -2.16, south: -3.76, east: -78.16, west: -79.95 }
+    },
+    {
+      name: 'Manabí',
+      center: { lat: -1.0545, lng: -80.4545 },
+      zoom: 9,
+      bounds: { north: 0.8, south: -2.3, east: -79.41, west: -81.06 }
+    },
+    {
+      name: 'El Oro',
+      center: { lat: -3.2581, lng: -79.9553 },
+      zoom: 10,
+      bounds: { north: -2.96, south: -4.06, east: -79.09, west: -80.82 }
+    },
+    {
+      name: 'Los Ríos',
+      center: { lat: -1.8, lng: -79.5 },
+      zoom: 10,
+      bounds: { north: -0.63, south: -2.3, east: -78.65, west: -79.8 }
+    },
+    {
+      name: 'Esmeraldas',
+      center: { lat: 0.9592, lng: -79.6567 },
+      zoom: 9,
+      bounds: { north: 1.47, south: 0.01, east: -78.15, west: -80.97 }
+    },
+    {
+      name: 'Tungurahua',
+      center: { lat: -1.2416, lng: -78.6267 },
+      zoom: 11,
+      bounds: { north: -0.93, south: -1.55, east: -78.05, west: -79.2 }
+    },
+    {
+      name: 'Imbabura',
+      center: { lat: 0.3492, lng: -78.1217 },
+      zoom: 10,
+      bounds: { north: 0.84, south: -0.39, east: -77.64, west: -78.89 }
+    },
+    {
+      name: 'Chimborazo',
+      center: { lat: -1.6635, lng: -78.6547 },
+      zoom: 10,
+      bounds: { north: -1.01, south: -2.38, east: -78.06, west: -79.3 }
+    },
+    {
+      name: 'Cotopaxi',
+      center: { lat: -0.9324, lng: -78.6158 },
+      zoom: 10,
+      bounds: { north: -0.42, south: -1.45, east: -78.05, west: -79.22 }
+    },
+    {
+      name: 'Loja',
+      center: { lat: -3.9928, lng: -79.2042 },
+      zoom: 10,
+      bounds: { north: -3.27, south: -5.01, east: -78.15, west: -80.96 }
+    },
+    {
+      name: 'Santo Domingo',
+      center: { lat: -0.2500, lng: -79.1750 },
+      zoom: 11,
+      bounds: { north: 0.13, south: -0.63, east: -78.75, west: -79.6 }
+    },
+    {
+      name: 'Santa Elena',
+      center: { lat: -2.2269, lng: -80.8590 },
+      zoom: 10,
+      bounds: { north: -1.93, south: -2.97, east: -80.19, west: -81.1 }
+    },
+    {
+      name: 'Carchi',
+      center: { lat: 0.8118, lng: -77.7178 },
+      zoom: 10,
+      bounds: { north: 1.47, south: 0.3, east: -77.64, west: -78.89 }
+    },
+    {
+      name: 'Bolívar',
+      center: { lat: -1.5883, lng: -79.0058 },
+      zoom: 10,
+      bounds: { north: -1.01, south: -2.31, east: -78.65, west: -79.66 }
+    },
+    {
+      name: 'Cañar',
+      center: { lat: -2.5597, lng: -78.9406 },
+      zoom: 10,
+      bounds: { north: -2.16, south: -2.96, east: -78.16, west: -79.67 }
+    },
+    // ORIENTE
+    {
+      name: 'Pastaza',
+      center: { lat: -1.4869, lng: -77.9958 },
+      zoom: 9,
+      bounds: { north: -1.01, south: -2.97, east: -76.0, west: -78.17 }
+    },
+    {
+      name: 'Morona Santiago',
+      center: { lat: -2.3084, lng: -78.1175 },
+      zoom: 9,
+      bounds: { north: -1.55, south: -4.36, east: -76.0, west: -78.97 }
+    },
+    {
+      name: 'Zamora Chinchipe',
+      center: { lat: -4.0669, lng: -78.9547 },
+      zoom: 9,
+      bounds: { north: -3.27, south: -5.01, east: -76.0, west: -79.95 }
+    },
+    {
+      name: 'Sucumbíos',
+      center: { lat: 0.0836, lng: -76.8983 },
+      zoom: 9,
+      bounds: { north: 1.47, south: -1.01, east: -75.19, west: -77.64 }
+    },
+    {
+      name: 'Orellana',
+      center: { lat: -0.4616, lng: -76.9875 },
+      zoom: 9,
+      bounds: { north: 0.37, south: -1.55, east: -75.19, west: -77.64 }
+    },
+    {
+      name: 'Napo',
+      center: { lat: -1.0049, lng: -77.8076 },
+      zoom: 9,
+      bounds: { north: -0.42, south: -1.55, east: -76.0, west: -78.97 }
+    },
+    // GALÁPAGOS
+    {
+      name: 'Galápagos',
+      center: { lat: -0.7893, lng: -90.9542 },
+      zoom: 9,
+      bounds: { north: 1.47, south: -1.4, east: -89.14, west: -92.01 }
+    }
   ];
 
   // Filtros
-  regionSeleccionada: string = 'Todas';
+  provinciaSeleccionada: string = 'Todas';
   especieSeleccionada: Especie | null = null;
 
   // Estado del mapa
@@ -104,12 +254,12 @@ export class MapaComponent implements OnInit {
       {
         id: 'ejemplo-1',
         nombre_cientifico: 'Pharomachrus mocinno',
-        nombre_vulgar: 'Quetzal (Ejemplo)',
+        nombre_vulgar: 'Quetzal (Pichincha)',
         familia: 'Trogonidae',
         estado_conservacion: 'En peligro',
         habitat: 'Bosque Nublado',
         descripcion: 'Ave emblemática de los bosques nublados',
-        coordenadas: { latitud: -0.1807, longitud: -78.4678 },
+        coordenadas: { latitud: -0.1807, longitud: -78.4678 }, // Quito
         fecha_registro: new Date().toISOString(),
         registrado_por: 'sistema',
         activo: true
@@ -117,38 +267,38 @@ export class MapaComponent implements OnInit {
       {
         id: 'ejemplo-2',
         nombre_cientifico: 'Amblyrhynchus cristatus',
-        nombre_vulgar: 'Iguana Marina (Ejemplo)',
+        nombre_vulgar: 'Iguana Marina (Galápagos)',
         familia: 'Iguanidae',
         estado_conservacion: 'Vulnerable',
         habitat: 'Costero',
         descripcion: 'Única iguana marina del mundo',
-        coordenadas: { latitud: -0.7893, longitud: -90.9542 },
+        coordenadas: { latitud: -0.7893, longitud: -90.9542 }, // Galápagos
         fecha_registro: new Date().toISOString(),
         registrado_por: 'sistema',
         activo: true
       },
       {
         id: 'ejemplo-3',
-        nombre_cientifico: 'Panthera onca',
-        nombre_vulgar: 'Jaguar (Ejemplo)',
-        familia: 'Felidae',
-        estado_conservacion: 'Casi amenazado',
-        habitat: 'Selva Tropical',
-        descripcion: 'Felino más grande de América',
-        coordenadas: { latitud: -1.3, longitud: -77.8 },
+        nombre_cientifico: 'Phoenicopterus ruber',
+        nombre_vulgar: 'Flamenco (Guayas)',
+        familia: 'Phoenicopteridae',
+        estado_conservacion: 'Preocupación menor',
+        habitat: 'Humedales',
+        descripcion: 'Ave acuática de humedales costeros',
+        coordenadas: { latitud: -2.1962, longitud: -79.8862 }, // Guayaquil
         fecha_registro: new Date().toISOString(),
         registrado_por: 'sistema',
         activo: true
       },
       {
         id: 'ejemplo-4',
-        nombre_cientifico: 'Phoenicopterus ruber',
-        nombre_vulgar: 'Flamenco (Ejemplo)',
-        familia: 'Phoenicopteridae',
-        estado_conservacion: 'No evaluado',
-        habitat: 'Humedales',
-        descripcion: 'Ave acuática de humedales costeros',
-        coordenadas: { latitud: -2.1962, longitud: -80.8890 },
+        nombre_cientifico: 'Panthera onca',
+        nombre_vulgar: 'Jaguar (Pastaza)',
+        familia: 'Felidae',
+        estado_conservacion: 'Casi amenazado',
+        habitat: 'Selva Tropical',
+        descripcion: 'Felino más grande de América',
+        coordenadas: { latitud: -1.4869, longitud: -77.9958 }, // Pastaza
         fecha_registro: new Date().toISOString(),
         registrado_por: 'sistema',
         activo: true
@@ -158,67 +308,64 @@ export class MapaComponent implements OnInit {
   }
 
   aplicarFiltros(): void {
-    if (this.regionSeleccionada === 'Todas') {
+    if (this.provinciaSeleccionada === 'Todas') {
       this.especiesFiltradas = [...this.especies];
     } else {
       this.especiesFiltradas = this.especies.filter(especie => {
-        const region = this.determinarRegionPorCoordenadas(especie.coordenadas.latitud, especie.coordenadas.longitud);
-        return region === this.regionSeleccionada;
+        const provincia = this.determinarProvinciaPorCoordenadas(especie.coordenadas.latitud, especie.coordenadas.longitud);
+        return provincia === this.provinciaSeleccionada;
       });
     }
-    console.log(`🔍 Aplicando filtro: ${this.regionSeleccionada} - ${this.especiesFiltradas.length} especies`);
+    console.log(`🔍 Aplicando filtro provincia: ${this.provinciaSeleccionada} - ${this.especiesFiltradas.length} especies`);
     this.actualizarMarkers();
   }
 
-  determinarRegionPorCoordenadas(lat: number, lng: number): string {
+  // ✅ NUEVA FUNCIÓN: Determinar provincia por coordenadas
+  determinarProvinciaPorCoordenadas(lat: number, lng: number): string {
     if (lat === 0 && lng === 0) return 'Sin ubicación';
 
-    if (lng >= -92 && lng <= -89) {
-      return 'Galapagos';
-    } else if (lng >= -81 && lat >= -3) {
-      return 'Costa';
-    } else if (lng >= -79 && lng <= -77) {
-      return 'Amazonia';
-    } else {
-      return 'Sierra';
+    // Buscar en qué provincia están las coordenadas
+    for (const provincia of this.provincias) {
+      const bounds = provincia.bounds;
+      if (lat <= bounds.north && lat >= bounds.south &&
+          lng <= bounds.east && lng >= bounds.west) {
+        return provincia.name;
+      }
     }
+
+    return 'Fuera de Ecuador';
   }
 
-  async onRegionChange(region: string): Promise<void> {
-    this.regionSeleccionada = region;
+  // ✅ FUNCIÓN ACTUALIZADA: Cambio de provincia
+  async onProvinciaChange(provincia: string): Promise<void> {
+    this.provinciaSeleccionada = provincia;
 
-    if (region !== 'Todas') {
+    if (provincia !== 'Todas') {
       try {
         this.isLoading = true;
-        console.log(`🔄 Cargando especies de región: ${region}`);
+        console.log(`🔄 Filtrando especies de provincia: ${provincia}`);
 
-        const response = await this.especiesService.getEspeciesPorRegion(region).toPromise();
+        // Aplicar filtro local por coordenadas
+        this.aplicarFiltros();
 
-        if (response && response.success && response.data && response.data.especies) {
-          this.especiesFiltradas = response.data.especies;
-          console.log(`✅ Especies de ${region} cargadas:`, this.especiesFiltradas.length);
-          this.actualizarMarkers();
-        } else {
-          console.log('⚠️ No se encontraron especies para la región, usando filtro local');
-          this.aplicarFiltros();
-        }
-
-        const regionInfo = this.regiones.find(r => r.name === region);
-        if (regionInfo && this.map) {
-          this.map.panTo(regionInfo.center);
-          this.map.zoom = regionInfo.zoom;
+        // Centrar mapa en la provincia seleccionada
+        const provinciaInfo = this.provincias.find(p => p.name === provincia);
+        if (provinciaInfo && this.map) {
+          this.map.panTo(provinciaInfo.center);
+          this.map.zoom = provinciaInfo.zoom;
+          console.log(`🗺️ Centrando mapa en ${provincia}:`, provinciaInfo.center);
         }
 
       } catch (error) {
-        console.error('❌ Error cargando especies por región:', error);
+        console.error('❌ Error filtrando por provincia:', error);
         this.aplicarFiltros();
       } finally {
         this.isLoading = false;
       }
     } else {
-      console.log('🗺️ Mostrando todas las regiones');
+      console.log('🗺️ Mostrando todas las provincias');
       this.aplicarFiltros();
-      this.map?.panTo({ lat: -1.831239, lng: -78.183406 });
+      this.map?.panTo({ lat: -1.831239, lng: -78.183406 }); // Centro de Ecuador
       if (this.map) {
         this.map.zoom = 7;
       }
@@ -246,17 +393,18 @@ export class MapaComponent implements OnInit {
         console.log(`📍 Separando marcador ${especie.nombre_vulgar} - Offset: ${offset}`);
       }
 
-      console.log(`📍 Creando marcador para: ${especie.nombre_vulgar} - Estado: ${especie.estado_conservacion}`);
+      const provincia = this.determinarProvinciaPorCoordenadas(especie.coordenadas.latitud, especie.coordenadas.longitud);
+      console.log(`📍 Creando marcador para: ${especie.nombre_vulgar} - Provincia: ${provincia} - Estado: ${especie.estado_conservacion}`);
 
       return {
         position: { lat, lng },
-        title: `${especie.nombre_vulgar} (${especie.estado_conservacion})`,
+        title: `${especie.nombre_vulgar} (${provincia})`,
         info: especie,
         options: {
           icon: {
             url: this.getMarkerIcon(especie.estado_conservacion),
-            scaledSize: new google.maps.Size(24, 24), // Tamaño consistente
-            anchor: new google.maps.Point(12, 12) // Centrar el icono
+            scaledSize: new google.maps.Size(24, 24),
+            anchor: new google.maps.Point(12, 12)
           }
         }
       };
@@ -265,7 +413,7 @@ export class MapaComponent implements OnInit {
     console.log(`📍 Marcadores creados: ${this.markers.length}`);
   }
 
-  // ✅ FUNCIÓN PRINCIPAL: Crear iconos SVG personalizados
+  // ✅ FUNCIÓN SVG (sin cambios)
   getMarkerIcon(status: string): string {
     const createSVGIcon = (color: string, borderColor: string = '#ffffff'): string => {
       const svg = `
@@ -277,17 +425,16 @@ export class MapaComponent implements OnInit {
       return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
     };
 
-    // ✅ TUS COLORES EXACTOS
     const colors: {[key: string]: string} = {
-      'En peligro': '#fd7e14',           // Naranja
-      'Preocupación menor': '#28a745',   // Verde
-      'Peligro crítico': '#dc3545',      // Rojo
-      'Vulnerable': '#007bff',           // Azul
-      'No evaluado': '#6c757d',          // Gris
-      'Extinto': '#e91e63',              // Rosado
-      'Casi amenazado': '#ffc107',       // Amarillo
-      'Datos insuficientes': '#6f42c1',  // Morado/Negro
-      'Extinto en estado silvestre': '#17a2b8' // Celeste
+      'En peligro': '#fd7e14',
+      'Preocupación menor': '#28a745',
+      'Peligro crítico': '#dc3545',
+      'Vulnerable': '#007bff',
+      'No evaluado': '#6c757d',
+      'Extinto': '#e91e63',
+      'Casi amenazado': '#ffc107',
+      'Datos insuficientes': '#6f42c1',
+      'Extinto en estado silvestre': '#17a2b8'
     };
 
     const color = colors[status] || '#6c757d';
@@ -296,20 +443,19 @@ export class MapaComponent implements OnInit {
     return createSVGIcon(color);
   }
 
-  // ✅ COLORES PARA BADGES (consistente con iconos)
   getStatusColor(status: string | undefined): string {
     if (!status) return '#6c757d';
 
     const colors: {[key: string]: string} = {
-      'En peligro': '#fd7e14',           // Naranja
-      'Preocupación menor': '#28a745',   // Verde
-      'Peligro crítico': '#dc3545',      // Rojo
-      'Vulnerable': '#007bff',           // Azul
-      'No evaluado': '#6c757d',          // Gris
-      'Extinto': '#e91e63',              // Rosado
-      'Casi amenazado': '#ffc107',       // Amarillo
-      'Datos insuficientes': '#6f42c1',  // Morado
-      'Extinto en estado silvestre': '#17a2b8' // Celeste
+      'En peligro': '#fd7e14',
+      'Preocupación menor': '#28a745',
+      'Peligro crítico': '#dc3545',
+      'Vulnerable': '#007bff',
+      'No evaluado': '#6c757d',
+      'Extinto': '#e91e63',
+      'Casi amenazado': '#ffc107',
+      'Datos insuficientes': '#6f42c1',
+      'Extinto en estado silvestre': '#17a2b8'
     };
 
     return colors[status] || '#6c757d';
@@ -317,18 +463,21 @@ export class MapaComponent implements OnInit {
 
   onMarkerClick(marker: any): void {
     this.especieSeleccionada = marker.info;
-    console.log('📌 Especie seleccionada:', this.especieSeleccionada?.nombre_vulgar);
+    const provincia = this.determinarProvinciaPorCoordenadas(
+      this.especieSeleccionada!.coordenadas.latitud,
+      this.especieSeleccionada!.coordenadas.longitud
+    );
+    console.log('📌 Especie seleccionada:', this.especieSeleccionada?.nombre_vulgar, 'en', provincia);
   }
 
   cerrarInfoEspecie(): void {
     this.especieSeleccionada = null;
   }
 
-  // ✅ DEBUG: Ver qué estados tienes en tus datos
   private debugEstados(): void {
     setTimeout(() => {
       const estadosUnicos = [...new Set(this.especies.map(e => e.estado_conservacion))];
-      console.log('🎯 Estados únicos encontrados en tus datos:', estadosUnicos);
+      console.log('🎯 Estados únicos encontrados:', estadosUnicos);
 
       const conteo = this.especies.reduce((acc, especie) => {
         acc[especie.estado_conservacion] = (acc[especie.estado_conservacion] || 0) + 1;
@@ -336,6 +485,15 @@ export class MapaComponent implements OnInit {
       }, {} as {[key: string]: number});
 
       console.log('📊 Conteo por estado:', conteo);
+
+      // ✅ NUEVO DEBUG: Mostrar especies por provincia
+      const conteoPorProvincia = this.especies.reduce((acc, especie) => {
+        const provincia = this.determinarProvinciaPorCoordenadas(especie.coordenadas.latitud, especie.coordenadas.longitud);
+        acc[provincia] = (acc[provincia] || 0) + 1;
+        return acc;
+      }, {} as {[key: string]: number});
+
+      console.log('🏛️ Especies por provincia:', conteoPorProvincia);
     }, 2000);
   }
 }

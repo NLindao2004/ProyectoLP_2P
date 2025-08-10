@@ -44,13 +44,29 @@
   }
 }
 
-.especies-count .badge {
-  background: #28a745;
-  color: white;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 500;
+.especies-count {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+
+  .badge {
+    background: #28a745;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  // ✅ NUEVO BADGE para mostrar provincia seleccionada
+  .province-badge {
+    background: #007bff;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 500;
+  }
 }
 
 .loading-container {

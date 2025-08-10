@@ -5,22 +5,61 @@
 
     <div class="filtros">
       <div class="filter-group">
-        <label for="region-select">Región:</label>
+        <label for="provincia-select">Provincia:</label>
         <select
-          id="region-select"
-          [(ngModel)]="regionSeleccionada"
-          (change)="onRegionChange(regionSeleccionada)"
+          id="provincia-select"
+          [(ngModel)]="provinciaSeleccionada"
+          (change)="onProvinciaChange(provinciaSeleccionada)"
           class="form-select">
-          <option value="Todas">Todas las regiones</option>
-          <option value="Costa">Costa</option>
-          <option value="Sierra">Sierra</option>
-          <option value="Amazonia">Amazonía</option>
-          <option value="Galapagos">Galápagos</option>
+          <option value="Todas">Todas las provincias</option>
+
+          <!-- ✅ COSTA -->
+          <optgroup label="Costa">
+            <option value="Esmeraldas">Esmeraldas</option>
+            <option value="Manabí">Manabí</option>
+            <option value="Los Ríos">Los Ríos</option>
+            <option value="Guayas">Guayas</option>
+            <option value="Santa Elena">Santa Elena</option>
+            <option value="El Oro">El Oro</option>
+            <option value="Santo Domingo">Santo Domingo de los Tsáchilas</option>
+          </optgroup>
+
+          <!-- ✅ SIERRA -->
+          <optgroup label="Sierra">
+            <option value="Carchi">Carchi</option>
+            <option value="Imbabura">Imbabura</option>
+            <option value="Pichincha">Pichincha</option>
+            <option value="Cotopaxi">Cotopaxi</option>
+            <option value="Tungurahua">Tungurahua</option>
+            <option value="Bolívar">Bolívar</option>
+            <option value="Chimborazo">Chimborazo</option>
+            <option value="Cañar">Cañar</option>
+            <option value="Azuay">Azuay</option>
+            <option value="Loja">Loja</option>
+          </optgroup>
+
+          <!-- ✅ ORIENTE -->
+          <optgroup label="Oriente">
+            <option value="Sucumbíos">Sucumbíos</option>
+            <option value="Orellana">Orellana</option>
+            <option value="Napo">Napo</option>
+            <option value="Pastaza">Pastaza</option>
+            <option value="Morona Santiago">Morona Santiago</option>
+            <option value="Zamora Chinchipe">Zamora Chinchipe</option>
+          </optgroup>
+
+          <!-- ✅ INSULAR -->
+          <optgroup label="Región Insular">
+            <option value="Galápagos">Galápagos</option>
+          </optgroup>
         </select>
       </div>
 
       <div class="especies-count">
         <span class="badge">{{ especiesFiltradas.length }} especies encontradas</span>
+        <span class="province-badge" *ngIf="provinciaSeleccionada !== 'Todas'">
+          en {{ provinciaSeleccionada }}
+        </span>
       </div>
     </div>
   </div>
@@ -54,7 +93,7 @@
       </map-marker>
     </google-map>
 
-    <!-- ✅ LEYENDA ACTUALIZADA con nuevos colores -->
+    <!-- Leyenda -->
     <div class="leyenda">
       <h4>Estado de Conservación</h4>
 
@@ -89,11 +128,6 @@
       </div>
 
       <div class="leyenda-item">
-        <span class="marker-dot celeste"></span>
-        <span>Extinto en Estado Silvestre</span>
-      </div>
-
-      <div class="leyenda-item">
         <span class="marker-dot morado"></span>
         <span>Datos Insuficientes</span>
       </div>
@@ -123,6 +157,9 @@
           </span>
         </p>
         <p *ngIf="especieSeleccionada.descripcion"><strong>Descripción:</strong> {{ especieSeleccionada.descripcion }}</p>
+        <p><strong>Provincia:</strong>
+          {{ determinarProvinciaPorCoordenadas(especieSeleccionada.coordenadas.latitud, especieSeleccionada.coordenadas.longitud) }}
+        </p>
         <p><strong>Coordenadas:</strong>
           {{ especieSeleccionada.coordenadas.latitud.toFixed(4) }},
           {{ especieSeleccionada.coordenadas.longitud.toFixed(4) }}

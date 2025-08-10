@@ -4,7 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { EspeciesService } from '../../../services/especies.service';
 import { Especie } from '../../../models/especies.model';
+import { Comentario} from '../../../models/especies.model';
 import { EspeciesFormComponent } from '../especies-form/especies-form.component';
+import { saveAs } from 'file-saver';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 @Component({
   selector: 'app-especies-list',
@@ -31,6 +35,12 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
   // Estadísticas
   totalEspecies = 0;
   
+  // Comentarios
+  nuevoComentario: { [key: string]: string } = {};
+  caracteresRestantes: { [key: string]: number } = {};
+  cargandoComentario: { [key: string]: boolean } = {};
+  comentarios: { [key: string]: any[] } = {};
+  
   private destroy$ = new Subject<void>();
 
   constructor(private especiesService: EspeciesService) {}
@@ -45,7 +55,6 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
   }
 
   private loadData(): void {
-    // Suscribirse a las especies
     this.especiesService.especies$
       .pipe(takeUntil(this.destroy$))
       .subscribe(especies => {
@@ -54,9 +63,9 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
         this.totalEspecies = especies.length;
         this.updateFamilias();
         this.applyFilters();
+        this.loadComentariosForAllSpecies();
       });
 
-    // Suscribirse al estado de carga
     this.especiesService.loading$
       .pipe(takeUntil(this.destroy$))
       .subscribe(loading => {
@@ -64,6 +73,14 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
       });
   }
 
+  // Método para manejar la creación de especies (nuevo)
+  onEspecieCreated(nuevaEspecie: Especie): void {
+    this.showCreateForm = false;
+    this.refreshData(); // Actualizar la lista de especies
+    console.log('Nueva especie creada:', nuevaEspecie);
+  }
+
+  // Resto de tus métodos existentes (filter, generateReport, etc.)
   private updateFamilias(): void {
     this.familias = [...new Set(this.especies.map(e => e.familia))].sort();
   }
@@ -83,7 +100,6 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
   private applyFilters(): void {
     let filtered = this.especies;
 
-    // Filtro de búsqueda
     if (this.searchTerm) {
       const term = this.searchTerm.toLowerCase();
       filtered = filtered.filter(especie =>
@@ -94,12 +110,10 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
       );
     }
 
-    // Filtro por familia
     if (this.selectedFamilia) {
       filtered = filtered.filter(especie => especie.familia === this.selectedFamilia);
     }
 
-    // Filtro por estado
     if (this.selectedEstado) {
       filtered = filtered.filter(especie => especie.estado_conservacion === this.selectedEstado);
     }
@@ -112,16 +126,13 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
   }
 
   editEspecie(especie: Especie): void {
-    // TODO: Implementar edición
     console.log('Editar especie:', especie);
   }
 
   deleteEspecie(especie: Especie): void {
     if (confirm(`¿Estás seguro de eliminar "${especie.nombre_vulgar}"?`)) {
       this.especiesService.deleteEspecie(especie.id!).subscribe({
-        next: () => {
-          console.log('Especie eliminada exitosamente');
-        },
+        next: () => console.log('Especie eliminada exitosamente'),
         error: (error) => {
           console.error('Error eliminando especie:', error);
           alert('Error al eliminar la especie: ' + error.message);
@@ -131,7 +142,6 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
   }
 
   viewOnMap(especie: Especie): void {
-    // TODO: Integrar con componente de mapa
     console.log('Ver en mapa:', especie);
   }
 
@@ -139,9 +149,192 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
     this.especiesService.refreshData();
   }
 
-  onEspecieCreated(especie: Especie): void {
-    this.showCreateForm = false;
-    console.log('Nueva especie creada:', especie);
+  // Métodos para comentarios
+
+ private loadComentariosForAllSpecies(): void {
+  // Ya no necesitamos cargar comentarios por separado
+  // Los comentarios vienen incluidos en cada especie
+  this.especies.forEach(especie => {
+    this.caracteresRestantes[especie.id!] = 500;
+    // Inicializamos el campo de nuevo comentario
+    this.nuevoComentario[especie.id!] = '';
+  });
+}
+
+agregarComentario(especieId: string) {
+  if (!this.nuevoComentario[especieId]?.trim()) return;
+
+  const nuevoComent: Comentario = {
+    texto: this.nuevoComentario[especieId].trim(),
+    usuario: 'Usuario', // Reemplaza con tu lógica de usuario real
+    fecha: new Date().toISOString()
+  };
+
+  this.cargandoComentario[especieId] = true;
+
+  this.especiesService.agregarComentario(especieId, nuevoComent)
+    .subscribe({
+      next: (especieActualizada) => {
+        const index = this.especies.findIndex(e => e.id === especieId);
+        if (index !== -1) {
+          // ✅ Actualizamos solo el array de comentarios
+          this.especies[index].comentarios = especieActualizada.comentarios;
+        }
+
+        // Actualizamos la lista filtrada
+        this.especiesFiltradas = [...this.especies];
+
+        // Limpiar el campo de texto
+        this.nuevoComentario[especieId] = '';
+
+        // Marcar como terminado
+        this.cargandoComentario[especieId] = false;
+      },
+      error: (err) => {
+        console.error('Error:', err);
+        this.cargandoComentario[especieId] = false;
+        alert('Error al agregar comentario: ' + err.message);
+      }
+    });
+}
+
+
+  // Métodos para reportes (existente)
+  generateReport(format: 'csv' | 'pdf'): void {
+    const especiesReporte = this.especiesFiltradas;
+    
+    if (especiesReporte.length === 0) {
+      alert('No hay datos para generar el reporte');
+      return;
+    }
+
+    if (format === 'csv') {
+      this.generateCSV(especiesReporte);
+    } else {
+      this.generatePDF(especiesReporte);
+    }
+  }
+
+  private generateCSV(especies: Especie[]): void {
+    const csvContent = this.convertToCSV(especies);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const fileName = this.generateFileName('csv');
+    saveAs(blob, fileName);
+  }
+
+  private generatePDF(especies: Especie[]): void {
+    try {
+      const doc = new jsPDF();
+      const fileName = this.generateFileName('pdf');
+      
+      let y = 20;
+      const lineHeight = 7;
+      const pageHeight = doc.internal.pageSize.height;
+      
+      doc.setFontSize(18);
+      doc.text('Reporte de Especies', 14, y);
+      y += lineHeight * 2;
+      
+      doc.setFontSize(10);
+      doc.text(`Generado el: ${new Date().toLocaleDateString()}`, 14, y);
+      y += lineHeight;
+      
+      const filters = this.getActiveFilters();
+      doc.text(`Filtros aplicados: ${filters}`, 14, y);
+      y += lineHeight * 2;
+      
+      doc.setFontSize(8);
+      especies.forEach(especie => {
+        if (y > pageHeight - 20) {
+          doc.addPage();
+          y = 20;
+        }
+        
+        doc.text(`Nombre Científico: ${especie.nombre_cientifico || '-'}`, 14, y);
+        y += lineHeight;
+        doc.text(`Nombre Vulgar: ${especie.nombre_vulgar || '-'}`, 14, y);
+        y += lineHeight;
+        doc.text(`Familia: ${especie.familia || '-'}`, 14, y);
+        y += lineHeight;
+        doc.text(`Estado: ${especie.estado_conservacion || '-'}`, 14, y);
+        y += lineHeight;
+        doc.text(`Hábitat: ${especie.habitat || '-'}`, 14, y);
+        y += lineHeight;
+        doc.text(`Ubicación: ${especie.coordenadas ? 
+          `${especie.coordenadas.latitud?.toFixed(4)}, ${especie.coordenadas.longitud?.toFixed(4)}` : '-'}`, 14, y);
+        y += lineHeight * 2;
+      });
+      
+      doc.save(fileName);
+      
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      this.generateCSV(especies);
+    }
+  }
+
+  private getActiveFilters(): string {
+    const filters = [];
+    if (this.searchTerm) filters.push(`Búsqueda: "${this.searchTerm}"`);
+    if (this.selectedFamilia) filters.push(`Familia: ${this.selectedFamilia}`);
+    if (this.selectedEstado) filters.push(`Estado: ${this.selectedEstado}`);
+    return filters.join(', ') || 'Ningún filtro aplicado';
+  }
+
+  private generateFileName(extension: string): string {
+    let fileName = 'reporte_especies';
+    const normalize = (str: string) => 
+      str.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+       .replace(/[^a-zA-Z0-9]/g, '_');
+
+    if (this.searchTerm) fileName += `_busqueda-${normalize(this.searchTerm)}`;
+    if (this.selectedFamilia) fileName += `_familia-${normalize(this.selectedFamilia)}`;
+    if (this.selectedEstado) fileName += `_estado-${normalize(this.selectedEstado)}`;
+    
+    fileName += `_${new Date().toISOString().slice(0, 10)}.${extension}`;
+    return fileName;
+  }
+
+  private convertToCSV(especies: Especie[]): string {
+    let csvContent = '\uFEFF';
+    const headers = [
+      'Nombre Científico',
+      'Nombre Vulgar',
+      'Familia',
+      'Estado de Conservación',
+      'Hábitat',
+      'Latitud',
+      'Longitud',
+      'Fecha Registro'
+    ];
+    
+    csvContent += headers.join(',') + '\n';
+    
+    especies.forEach(especie => {
+      const row = [
+        this.escapeCsv(especie.nombre_cientifico),
+        this.escapeCsv(especie.nombre_vulgar),
+        this.escapeCsv(especie.familia),
+        this.escapeCsv(especie.estado_conservacion),
+        this.escapeCsv(especie.habitat),
+        especie.coordenadas?.latitud || '',
+        especie.coordenadas?.longitud || '',
+        this.escapeCsv(especie.fecha_registro || '')
+      ];
+      
+      csvContent += row.join(',') + '\n';
+    });
+    
+    return csvContent;
+  }
+
+  private escapeCsv(value: string): string {
+    if (!value) return '';
+    let escaped = value.replace(/"/g, '""');
+    if (escaped.includes(',') || escaped.includes('\n') || escaped.includes('"')) {
+      escaped = `"${escaped}"`;
+    }
+    return escaped;
   }
 
   getEstadoClass(estado: string): string {

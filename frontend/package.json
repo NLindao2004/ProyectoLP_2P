@@ -27,6 +27,7 @@
     "@angular/core": "^20.1.5",
     "@angular/fire": "^20.0.1",
     "@angular/forms": "^20.1.5",
+    "@angular/google-maps": "^20.1.5",
     "@angular/material": "^20.1.4",
     "@angular/platform-browser": "^20.1.5",
     "@angular/router": "^20.1.5",

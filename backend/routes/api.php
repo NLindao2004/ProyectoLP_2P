@@ -2,10 +2,9 @@
 
 
 // Configurar CORS para Angular
-header('Access-Control-Allow-Origin: http://localhost:4200');
+header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
-header('Content-Type: application/json');
 
 // Manejar preflight OPTIONS
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
@@ -15,98 +14,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-// Obtener la ruta solicitada
+// Obtener la ruta y método
 $request_uri = $_SERVER['REQUEST_URI'];
+$request_method = $_SERVER['REQUEST_METHOD'];
+
+// Remover query parameters y obtener solo el path
 $path = parse_url($request_uri, PHP_URL_PATH);
-$method = $_SERVER['REQUEST_METHOD'];
 
-// Remover el prefijo del proyecto si existe
-$base_path = '/ProyectoLP_2P/backend/public';
-if (strpos($path, $base_path) === 0) {
-    $path = substr($path, strlen($base_path));
+// ✅ RUTAS para especies
+if (preg_match('#^/api/especies/?$#', $path)) {
+    require_once __DIR__ . '/../src/Controllers/EspeciesController.php';
+    $controller = new EspeciesController();
+    $controller->handleRequest($request_method);
+    exit;
 }
 
-// Enrutador de APIs para Terraverde
-try {
-    switch (true) {
-        // === ESPECIES ===
-        case preg_match('/^\/api\/especies$/', $path):
-            require_once __DIR__ . '/../src/Controllers/EspeciesController.php';
-            $controller = new EspeciesController();
-            $controller->handleRequest($method);
-            break;
-
-        case preg_match('/^\/api\/especies\/(\w+)$/', $path, $matches):
-            require_once __DIR__ . '/../src/Controllers/EspeciesController.php';
-            $controller = new EspeciesController();
-            $controller->handleRequest($method, $matches[1]);
-            break;
-
-        // === USUARIOS ===
-        case preg_match('/^\/api\/usuarios$/', $path):
-            require_once __DIR__ . '/../src/Controllers/UsuariosController.php';
-            $controller = new UsuariosController();
-            $controller->handleRequest($method);
-            break;
-
-        case preg_match('/^\/api\/usuarios\/(\w+)$/', $path, $matches):
-            require_once __DIR__ . '/../src/Controllers/UsuariosController.php';
-            $controller = new UsuariosController();
-            $controller->handleRequest($method, $matches[1]);
-            break;
-
-        // === REPORTES ===
-        case preg_match('/^\/api\/reportes$/', $path):
-            require_once __DIR__ . '/../src/Controllers/ReportesController.php';
-            $controller = new ReportesController();
-            $controller->handleRequest($method);
-            break;
-
-        case preg_match('/^\/api\/reportes\/(\w+)$/', $path, $matches):
-            require_once __DIR__ . '/../src/Controllers/ReportesController.php';
-            $controller = new ReportesController();
-            $controller->handleRequest($method, $matches[1]);
-            break;
-
-        // === DASHBOARD/STATS ===
-        case preg_match('/^\/api\/dashboard$/', $path):
-            require_once __DIR__ . '/../src/Controllers/DashboardController.php';
-            $controller = new DashboardController();
-            $controller->handleRequest($method);
-            break;
-
-        // === HEALTH CHECK ===
-        case preg_match('/^\/api\/health$/', $path):
-            require_once __DIR__ . '/../src/Controllers/HealthController.php';
-            $controller = new HealthController();
-            $controller->handleRequest($method);
-            break;
-
-        // === RUTA NO ENCONTRADA ===
-        default:
-            http_response_code(404);
-            echo json_encode([
-                'success' => false,
-                'message' => 'Endpoint no encontrado',
-                'path' => $path,
-                'available_endpoints' => [
-                    'GET/POST/PUT/DELETE /api/especies',
-                    'GET/POST/PUT/DELETE /api/usuarios', 
-                    'GET/POST/PUT/DELETE /api/reportes',
-                    'GET /api/dashboard',
-                    'GET /api/health'
-                ]
-            ]);
-            break;
+// ✅ RUTA para especies por región
+if (preg_match('#^/api/especies/region/([^/]+)$#', $path, $matches)) {
+    if ($request_method === 'GET') {
+        require_once __DIR__ . '/../src/Controllers/EspeciesController.php';
+        $controller = new EspeciesController();
+        $controller->getEspeciesPorRegion($matches[1]);
+        exit;
     }
-
-} catch (Exception $e) {
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'message' => 'Error interno del servidor',
-        'error' => $e->getMessage()
-    ]);
 }
 
-?>
+// ✅ RUTA para especie específica
+if (preg_match('#^/api/especies/([^/]+)$#', $path, $matches)) {
+    require_once __DIR__ . '/../src/Controllers/EspeciesController.php';
+    $controller = new EspeciesController();
+    $controller->handleRequest($request_method, $matches[1]);
+    exit;
+}
+
+// Health check
+if ($path === '/api/health') {
+    require_once __DIR__ . '/../src/Controllers/HealthController.php';
+    $controller = new HealthController();
+    $controller->check();
+    exit;
+}
+
+// Dashboard
+if ($path === '/api/dashboard') {
+    require_once __DIR__ . '/../src/Controllers/DashboardController.php';
+    $controller = new DashboardController();
+    $controller->getStats();
+    exit;
+}
+
+// Ruta no encontrada
+http_response_code(404);
+echo json_encode([
+    'success' => false,
+    'message' => 'Endpoint no encontrado',
+    'path' => $path,
+    'method' => $request_method
+], JSON_PRETTY_PRINT);

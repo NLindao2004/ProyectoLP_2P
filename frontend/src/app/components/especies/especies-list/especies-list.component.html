@@ -98,15 +98,9 @@
       </div>
       
       <div class="card-actions">
-        <button class="btn-edit" (click)="editEspecie(especie); $event.stopPropagation()">
-          Editar
-        </button>
-        <button class="btn-delete" (click)="deleteEspecie(especie); $event.stopPropagation()">
-          Eliminar
-        </button>
-        <button class="btn-map" (click)="viewOnMap(especie); $event.stopPropagation()">
-          Ver en Mapa
-        </button>
+        <button class="btn-edit" (click)="editEspecie(especie); $event.stopPropagation()">Editar</button>
+        <button class="btn-delete" (click)="deleteEspecie(especie); $event.stopPropagation()">Eliminar</button>
+        <button class="btn-map" (click)="viewOnMap(especie); $event.stopPropagation()">Ver en Mapa</button>
       </div>
     </div>
   </div>
@@ -126,7 +120,7 @@
     </button>
   </div>
 
-  <!-- Formulario de creación (modal simple) -->
+  <!-- Formulario de creación -->
   <div *ngIf="showCreateForm" class="modal-overlay" (click)="showCreateForm = false">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <app-especies-form 
@@ -135,5 +129,11 @@
         (formClosed)="showCreateForm = false">
       </app-especies-form>
     </div>
+  </div>
+
+  <!-- Botones de reporte -->
+  <div class="report-button-container">
+    <button class="btn-report" (click)="generateReport('csv')">📄 CSV</button>
+    <button class="btn-report btn-pdf" (click)="generateReport('pdf')">📊 PDF</button>
   </div>
 </div>

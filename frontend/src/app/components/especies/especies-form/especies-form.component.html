@@ -42,7 +42,7 @@
         </div>
 
         <div class="form-group">
-          <label for="nombre_vulgar" class="required">Nombre Vulgar</label>
+          <label for="nombre_vulgar" class="required">Nombre Común</label>
           <input
             type="text"
             id="nombre_vulgar"
@@ -259,8 +259,8 @@
         </div>
 
         <div class="form-info">
-          <p><strong>📅 Fecha de registro:</strong> {{ getCurrentDate() }}</p>
-          <p><strong>🆔 ID:</strong> {{ isEditMode ? especie?.id : 'Se generará automáticamente' }}</p>
+          <p><strong>Fecha de registro:</strong> {{ getCurrentDate() }}</p>
+          <p><strong>ID:</strong> {{ isEditMode ? especie?.id : 'Se generará automáticamente' }}</p>
         </div>
       </div>
     </fieldset>
@@ -272,7 +272,7 @@
         class="btn btn-secondary"
         (click)="closeForm()"
         [disabled]="isLoading">
-        ❌ Cancelar
+        Cancelar
       </button>
 
       <button
@@ -281,16 +281,16 @@
         (click)="resetForm()"
         [disabled]="isLoading"
         *ngIf="!isEditMode">
-        🔄 Limpiar
+        Limpiar
       </button>
 
       <button
         type="submit"
         class="btn btn-primary"
         [disabled]="isLoading || especieForm.invalid">
-        <span *ngIf="isLoading">⏳ Guardando...</span>
+        <span *ngIf="isLoading"> Guardando...</span>
         <span *ngIf="!isLoading">
-          {{ isEditMode ? '💾 Actualizar Especie' : '🌿 Crear Especie' }}
+          {{ isEditMode ? 'Actualizar Especie' : '🌿 Crear Especie' }}
         </span>
       </button>
     </div>

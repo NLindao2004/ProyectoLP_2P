@@ -34,15 +34,7 @@ if (strpos($path, '/api/') !== false) {
             <p>Sistema de Gestión de Biodiversidad del Ecuador</p>
         </div>
 
-        <div class="status">
-            <h3>📊 Estado del Sistema</h3>
-            <p>✅ Backend funcionando correctamente</p>
-            <p>✅ Firebase conectado</p>
-            <p>✅ APIs REST disponibles</p>
-            <p>⚡ Listo para Angular frontend</p>
-        </div>
-
-        <h3>🔗 Endpoints Disponibles:</h3>
+        <h3>Endpoints Disponibles:</h3>
         
         <div class="endpoint">
             <strong>Especies</strong><br>
@@ -67,13 +59,7 @@ if (strpos($path, '/api/') !== false) {
             <span class="method">GET</span> /api/dashboard - Estadísticas generales
         </div>
 
-        <h3>📱 Para el Frontend Angular:</h3>
-        <p>Base URL: <code>http://localhost/ProyectoLP_2P/backend/public</code></p>
-        <p>Todas las respuestas están en formato JSON con CORS habilitado.</p>
-        
-        <div style="text-align: center; margin-top: 30px; color: #666;">
-            <p>🚀 Terraverde - Conservando la biodiversidad del Ecuador</p>
-        </div>
+
     </div>
 </body>
 </html>

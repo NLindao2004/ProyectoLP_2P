@@ -1,6 +1,7 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
 import { EspeciesService } from '../../../services/especies.service';
 import { 
   Especie, 
@@ -8,6 +9,16 @@ import {
   EstadoConservacion, 
   FAMILIAS_COMUNES 
 } from '../../../models/especies.model';
+
+// Interfaz para las imágenes seleccionadas
+interface SelectedImage {
+  file?: File;           // Para nuevas imágenes
+  preview: string;       // URL de preview
+  url?: string;          // Para imágenes existentes
+  id?: string;           // ID de imagen existente
+  isExisting?: boolean;  // Flag para identificar imágenes existentes
+  name?: string;         // Nombre del archivo
+}
 
 @Component({
   selector: 'app-especies-form',
@@ -17,10 +28,7 @@ import {
   styleUrls: ['./especies-form.component.scss']
 })
 export class EspeciesFormComponent implements OnInit {
-  @Input() especie: Especie | null = null;
-  @Output() especieCreated = new EventEmitter<Especie>();
-  @Output() especieUpdated = new EventEmitter<Especie>();
-  @Output() formClosed = new EventEmitter<void>();
+  especie: Especie | null = null;
 
   // Datos del formulario
   formData: EspecieFormData = {
@@ -40,6 +48,14 @@ export class EspeciesFormComponent implements OnInit {
   isEditMode = false;
   errors: any = {};
   showAdvanced = false;
+
+  // ✅ MODIFICAR: Propiedades para manejo de imágenes existentes
+  selectedImages: SelectedImage[] = [];
+  existingImages: SelectedImage[] = []; // Imágenes originales de la especie
+  imagesToDelete: string[] = []; // IDs de imágenes a eliminar
+  maxImages = 5;
+  minImages = 1;
+  maxFileSize = 5 * 1024 * 1024; // 5MB en bytes
 
   // Opciones para selects
   estadosConservacion = Object.values(EstadoConservacion);
@@ -74,10 +90,36 @@ export class EspeciesFormComponent implements OnInit {
     'Bosque piemontano'
   ];
 
-  constructor(private especiesService: EspeciesService) {}
+  constructor(
+    private especiesService: EspeciesService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
-    this.setupForm();
+    // Check if we're in edit mode based on route params
+    this.route.params.subscribe(params => {
+      if (params['id']) {
+        this.loadEspecieForEdit(params['id']);
+      } else {
+        this.setupForm();
+      }
+    });
+  }
+
+  private loadEspecieForEdit(id: string): void {
+    this.especiesService.getEspecieById(id).subscribe({
+      next: (especie) => {
+        this.especie = especie;
+        this.setupForm();
+      },
+      error: (error) => {
+        console.error('Error loading especie:', error);
+        this.errors.general = 'Error al cargar la especie para editar';
+        // Redirect to catalog if especie not found
+        this.router.navigate(['/catalogo']);
+      }
+    });
   }
 
   private setupForm(): void {
@@ -95,10 +137,37 @@ export class EspeciesFormComponent implements OnInit {
         longitud: this.especie.coordenadas?.longitud || 0,
         registrado_por: this.especie.registrado_por
       };
+
+      // ✅ AGREGAR: Cargar imágenes existentes
+      this.loadExistingImages();
     } else {
       // Modo creación - valores por defecto
       this.isEditMode = false;
       this.setDefaultLocation();
+    }
+  }
+
+  // ✅ AGREGAR: Método para cargar imágenes existentes
+  private loadExistingImages(): void {
+    if (this.especie?.imagenes && this.especie.imagenes.length > 0) {
+      console.log('Cargando imágenes existentes:', this.especie.imagenes);
+      
+      this.existingImages = this.especie.imagenes.map(imagen => ({
+        preview: imagen.url,
+        url: imagen.url,
+        id: imagen.id,
+        isExisting: true,
+        name: imagen.nombre || 'Imagen existente'
+      }));
+      
+      // Copiar a selectedImages para mostrar en el preview
+      this.selectedImages = [...this.existingImages];
+      
+      console.log('Imágenes cargadas:', this.selectedImages.length);
+    } else {
+      console.log('No hay imágenes existentes para cargar');
+      this.selectedImages = [];
+      this.existingImages = [];
     }
   }
 
@@ -124,15 +193,47 @@ export class EspeciesFormComponent implements OnInit {
   }
 
   private createEspecie(): void {
-    this.especiesService.createEspecie(this.formData).subscribe({
+    // Crear FormData para enviar archivos
+    const formData = new FormData();
+    
+    // Agregar datos del formulario (excepto latitud y longitud)
+    Object.keys(this.formData).forEach(key => {
+      if (key !== 'latitud' && key !== 'longitud') {
+        const value = this.formData[key as keyof EspecieFormData];
+        formData.append(key, value?.toString() ?? '');
+      }
+    });
+
+    // Agregar latitud y longitud explícitamente como string
+    formData.append(
+      'latitud',
+      (typeof this.formData.latitud === 'number' ? this.formData.latitud : Number(this.formData.latitud)).toFixed(4)
+    );
+    formData.append(
+      'longitud',
+      (typeof this.formData.longitud === 'number' ? this.formData.longitud : Number(this.formData.longitud)).toFixed(4)
+    );
+    // Agregar imágenes nuevas
+    const newImages = this.selectedImages.filter(img => img.file && !img.isExisting);
+    newImages.forEach((img) => {
+      if (img.file) {
+        formData.append('imagenes[]', img.file);
+      }
+    });
+
+
+    console.log('Creando especie con', newImages.length, 'imágenes');
+
+    this.especiesService.createEspecieWithImages(formData).subscribe({
       next: (nuevaEspecie) => {
-        this.especieCreated.emit(nuevaEspecie);
-        this.resetForm();
+        this.router.navigate(['/catalogo'], { 
+          queryParams: { message: 'Especie creada exitosamente' }
+        });
         this.isLoading = false;
       },
       error: (error) => {
         console.error('Error creando especie:', error);
-        this.errors.general = error.message;
+        this.errors.general = error.message || 'Error al crear la especie';
         this.isLoading = false;
       }
     });
@@ -141,20 +242,143 @@ export class EspeciesFormComponent implements OnInit {
   private updateEspecie(): void {
     if (!this.especie?.id) return;
 
-    this.especiesService.updateEspecie(this.especie.id, this.formData).subscribe({
+    const formData = new FormData();
+
+    // Agregar datos del formulario (excepto latitud y longitud)
+    Object.keys(this.formData).forEach(key => {
+      if (key !== 'latitud' && key !== 'longitud') {
+        const value = this.formData[key as keyof EspecieFormData];
+        formData.append(key, value?.toString() ?? '');
+      }
+    });
+
+    // Agregar latitud y longitud explícitamente como string (4 decimales)
+    formData.append(
+      'latitud',
+      (typeof this.formData.latitud === 'number' ? this.formData.latitud : Number(this.formData.latitud)).toFixed(4)
+    );
+    formData.append(
+      'longitud',
+      (typeof this.formData.longitud === 'number' ? this.formData.longitud : Number(this.formData.longitud)).toFixed(4)
+    );
+
+    // Agregar imágenes nuevas
+    const newImages = this.selectedImages.filter(img => img.file && !img.isExisting);
+    newImages.forEach((img) => {
+      if (img.file) {
+        formData.append('imagenes[]', img.file);
+      }
+    });
+
+    // Agregar IDs de imágenes a eliminar
+    if (this.imagesToDelete.length > 0) {
+      formData.append('imagesToDelete', JSON.stringify(this.imagesToDelete));
+    }
+
+    // Agregar IDs de imágenes existentes que se mantienen
+    const keepingImages = this.selectedImages
+      .filter(img => img.isExisting && img.id)
+      .map(img => img.id);
+
+    if (keepingImages.length > 0) {
+      formData.append('keepingImages', JSON.stringify(keepingImages));
+    }
+
+    console.log('Actualizando especie:', {
+      nuevasImagenes: newImages.length,
+      imagenesAEliminar: this.imagesToDelete.length,
+      imagenesQueSeQuedan: keepingImages.length
+    });
+
+    this.especiesService.updateEspecieWithImages(this.especie.id, formData).subscribe({
       next: () => {
-        this.especieUpdated.emit({ ...this.especie!, ...this.formData });
-        this.closeForm();
+        this.router.navigate(['/catalogo'], { 
+          queryParams: { message: 'Especie actualizada exitosamente' }
+        });
         this.isLoading = false;
       },
       error: (error) => {
         console.error('Error actualizando especie:', error);
-        this.errors.general = error.message;
+        this.errors.general = error.message || 'Error al actualizar la especie';
         this.isLoading = false;
       }
     });
   }
 
+  // ✅ AGREGAR: Método para seleccionar archivos
+  onFileSelected(event: any): void {
+    const files: FileList = event.target.files;
+    
+    if (!files || files.length === 0) {
+      return;
+    }
+
+    // Validar cantidad total de imágenes
+    if (this.selectedImages.length + files.length > this.maxImages) {
+      this.errors.images = `Máximo ${this.maxImages} imágenes permitidas`;
+      return;
+    }
+
+    // Procesar cada archivo
+    Array.from(files).forEach(file => {
+      // Validar tipo de archivo
+      if (!file.type.startsWith('image/')) {
+        this.errors.images = 'Solo se permiten archivos de imagen';
+        return;
+      }
+
+      // Validar tamaño de archivo
+      if (file.size > this.maxFileSize) {
+        this.errors.images = `El archivo ${file.name} es muy grande. Máximo 5MB por imagen`;
+        return;
+      }
+
+      // Crear preview
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.selectedImages.push({
+          file: file,
+          preview: e.target.result,
+          isExisting: false,
+          name: file.name
+        });
+
+        // Limpiar errores si todo está bien
+        if (this.selectedImages.length >= this.minImages) {
+          delete this.errors.images;
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Limpiar el input file
+    event.target.value = '';
+  }
+
+  // ✅ MODIFICAR: Método para remover imágenes
+  removeImage(index: number): void {
+    const imageToRemove = this.selectedImages[index];
+    
+    console.log('Removiendo imagen:', imageToRemove);
+    
+    // Si es una imagen existente, agregarla a la lista de eliminación
+    if (imageToRemove.isExisting && imageToRemove.id) {
+      this.imagesToDelete.push(imageToRemove.id);
+      console.log('Marcada para eliminar:', imageToRemove.id);
+    }
+    
+    // Remover de selectedImages
+    this.selectedImages.splice(index, 1);
+    
+    // Validar cantidad mínima
+    if (this.selectedImages.length < this.minImages) {
+      this.errors.images = `Mínimo ${this.minImages} imagen requerida`;
+    } else {
+      delete this.errors.images;
+    }
+  }
+
+  // ✅ MODIFICAR: Validación para incluir imágenes en modo edición
   private validateForm(): boolean {
     const errors: any = {};
 
@@ -173,6 +397,17 @@ export class EspeciesFormComponent implements OnInit {
 
     if (!this.formData.habitat.trim()) {
       errors.habitat = 'El hábitat es requerido';
+    }
+
+    // ✅ VALIDACIÓN: Mínimo de imágenes (solo en modo creación o si no hay imágenes existentes)
+    if (!this.isEditMode || this.selectedImages.length === 0) {
+      if (this.selectedImages.length < this.minImages) {
+        errors.images = `Mínimo ${this.minImages} imagen requerida`;
+      }
+    }
+
+    if (this.selectedImages.length > this.maxImages) {
+      errors.images = `Máximo ${this.maxImages} imágenes permitidas`;
     }
 
     // Validación de coordenadas
@@ -243,6 +478,11 @@ export class EspeciesFormComponent implements OnInit {
     this.formData.longitud = -78.4678;
   }
 
+  closeForm(): void {
+    // Navigate back to catalog instead of emitting event
+    this.router.navigate(['/catalogo']);
+  }
+
   resetForm(): void {
     this.formData = {
       nombre_cientifico: '',
@@ -256,11 +496,10 @@ export class EspeciesFormComponent implements OnInit {
       registrado_por: 'Usuario del sistema'
     };
     this.errors = {};
+    this.selectedImages = [];
+    this.existingImages = [];
+    this.imagesToDelete = [];
     this.setDefaultLocation();
-  }
-
-  closeForm(): void {
-    this.formClosed.emit();
   }
 
   // Helpers para el template

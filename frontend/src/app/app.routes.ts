@@ -19,12 +19,16 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/registro-especie/registro-especie.component').then(m => m.RegistroEspecieComponent)
   },
   {
+    path: 'editar-especie/:id',
+    loadComponent: () => import('./pages/registro-especie/registro-especie.component').then(m => m.RegistroEspecieComponent)
+  },
+  {
     path: 'mapa',
     loadComponent: () => import('./pages/mapa/mapa.component').then(m => m.MapaComponent)
   },
   {
-    path: 'registro-especie',
-    loadComponent: () => import('./pages/registro-especie/registro-especie.component').then(m => m.RegistroEspecieComponent)
+    path: 'especies/:id',
+    loadComponent: () => import('./components/especies/especie-detalle/especie-detalle.component').then(m => m.EspecieDetalleComponent)
   },
   {
     path: '**',

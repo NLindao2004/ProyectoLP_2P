@@ -5,26 +5,15 @@
 }
 
 .page-header {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto 30px;
   
   .header-content {
     text-align: center;
-    
-    .btn-back {
-      background: rgba(255,255,255,0.9);
-      border: 1px solid #ddd;
-      padding: 8px 16px;
-      border-radius: 20px;
-      cursor: pointer;
-      margin-bottom: 20px;
-      transition: all 0.3s;
-      
-      &:hover {
-        background: white;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      }
-    }
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     
     h1 {
       color: #2e7d32;
@@ -47,15 +36,20 @@
 }
 
 .form-container {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto 40px;
+  
+  // El formulario ya tiene sus propios estilos
+  app-especies-form {
+    display: block;
+  }
 }
 
 .info-section {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 20px;
   
   @media (max-width: 768px) {
@@ -68,11 +62,20 @@
   padding: 25px;
   border-radius: 12px;
   box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+  }
   
   h3 {
     color: #2e7d32;
     margin-bottom: 15px;
     font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
   
   ul {
@@ -83,6 +86,7 @@
       padding: 8px 0;
       padding-left: 25px;
       position: relative;
+      line-height: 1.5;
       
       &::before {
         content: '✓';
@@ -97,5 +101,38 @@
   p {
     line-height: 1.6;
     color: #666;
+    margin: 0;
+    
+    strong {
+      color: #2e7d32;
+    }
+  }
+}
+
+// Animación de entrada
+.registro-container {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .registro-container {
+    padding: 10px;
+  }
+  
+  .page-header .header-content,
+  .info-card {
+    padding: 1.5rem;
   }
 }

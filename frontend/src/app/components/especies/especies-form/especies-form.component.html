@@ -1,12 +1,14 @@
-<div class="especies-form-container">
-  <!-- Header -->
-  <div class="form-header">
-    <h2>
-      {{ isEditMode ? '✏️ Editar Especie' : '🌿 Nueva Especie' }}
-    </h2>
-    <button type="button" class="btn-close" (click)="closeForm()" aria-label="Cerrar">
-      ✕
-    </button>
+<div class="especies-form-page">
+  <!-- Header de página completa -->
+  <div class="page-header">
+    <div class="header-content">
+      <button type="button" class="btn-back" (click)="closeForm()" aria-label="Volver">
+        ← Volver al Catálogo
+      </button>
+      <h1>
+        {{ isEditMode ? '✏️ Editar Especie' : '🌿 Registrar Nueva Especie' }}
+      </h1>
+    </div>
   </div>
 
   <!-- Mensaje de error general -->
@@ -29,15 +31,11 @@
             id="nombre_cientifico"
             name="nombre_cientifico"
             [(ngModel)]="formData.nombre_cientifico"
-            #nombreCientificoField="ngModel"
-            required
-            placeholder="Ej: Quercus robur"
             class="form-control"
-            [class.error]="isFieldInvalid('nombre_cientifico', especieForm)"
-            autocomplete="off">
-          
+            placeholder="Ej: Quercus robur"
+            required>
           <div *ngIf="isFieldInvalid('nombre_cientifico', especieForm)" class="field-error">
-            {{ getFieldError('nombre_cientifico') || 'El nombre científico es requerido' }}
+            {{ getFieldError('nombre_cientifico') }}
           </div>
         </div>
 
@@ -48,15 +46,11 @@
             id="nombre_vulgar"
             name="nombre_vulgar"
             [(ngModel)]="formData.nombre_vulgar"
-            #nombreVulgarField="ngModel"
-            required
-            placeholder="Ej: Roble común"
             class="form-control"
-            [class.error]="isFieldInvalid('nombre_vulgar', especieForm)"
-            autocomplete="off">
-          
+            placeholder="Ej: Roble común"
+            required>
           <div *ngIf="isFieldInvalid('nombre_vulgar', especieForm)" class="field-error">
-            {{ getFieldError('nombre_vulgar') || 'El nombre vulgar es requerido' }}
+            {{ getFieldError('nombre_vulgar') }}
           </div>
         </div>
       </div>
@@ -70,28 +64,18 @@
               id="familia"
               name="familia"
               [(ngModel)]="formData.familia"
-              #familiaField="ngModel"
-              required
-              placeholder="Ej: Fagaceae"
               class="form-control"
-              [class.error]="isFieldInvalid('familia', especieForm)"
-              list="familias-list"
-              autocomplete="off">
-            
-            <datalist id="familias-list">
-              <option *ngFor="let familia of familias" [value]="familia">
-            </datalist>
-            
-            <select (change)="onFamiliaChange($event)" class="form-select-helper">
+              placeholder="Ej: Fagaceae"
+              required>
+            <select (change)="onFamiliaChange($event)" class="select-helper">
               <option value="">Seleccionar familia común...</option>
               <option *ngFor="let familia of familias" [value]="familia">
                 {{ familia }}
               </option>
             </select>
           </div>
-          
           <div *ngIf="isFieldInvalid('familia', especieForm)" class="field-error">
-            {{ getFieldError('familia') || 'La familia es requerida' }}
+            {{ getFieldError('familia') }}
           </div>
         </div>
 
@@ -110,6 +94,85 @@
       </div>
     </fieldset>
 
+    <!-- ✅ IMÁGENES - Sección actualizada -->
+    <fieldset class="form-section">
+      <legend>📸 Imágenes de la Especie</legend>
+      
+      <div class="image-upload-section">
+        <div class="upload-info">
+          <p><strong>Cargar imágenes:</strong> Mínimo 1, máximo 5 imágenes</p>
+          <p class="text-small">Formatos: JPG, PNG, WEBP (máx. 5MB cada una)</p>
+          <div class="images-counter">
+            <span class="counter-badge">
+              {{ selectedImages.length }} / {{ maxImages }} imágenes
+            </span>
+          </div>
+        </div>
+
+        <!-- ✅ Solo mostrar input si no se ha alcanzado el máximo -->
+        <div *ngIf="selectedImages.length < maxImages" class="image-upload-area">
+          <input
+            type="file"
+            id="imageFiles"
+            name="imageFiles"
+            #fileInput
+            (change)="onFileSelected($event)"
+            multiple
+            accept="image/*"
+            class="file-input">
+          
+          <label for="imageFiles" class="file-upload-label">
+            <div class="upload-content">
+              <span class="upload-icon">📷</span>
+              <span class="upload-text">
+                {{ selectedImages.length === 0 ? 'Seleccionar imágenes' : 'Agregar más imágenes' }}
+              </span>
+            </div>
+          </label>
+        </div>
+
+        <!-- ✅ Vista previa de imágenes - ACTUALIZADA para manejar existentes y nuevas -->
+        <div *ngIf="selectedImages.length > 0" class="image-preview-grid">
+          <div *ngFor="let image of selectedImages; let i = index" class="image-preview-item">
+            <img [src]="image.preview" [alt]="image.name || 'Imagen'" class="preview-image">
+            <div class="image-info">
+              <div class="image-name-container">
+                <span class="image-name">{{ image.name || 'Imagen existente' }}</span>
+                <!-- ✅ Badges para diferenciar imágenes -->
+                <span *ngIf="image.isExisting" class="existing-badge">📎 Existente</span>
+                <span *ngIf="!image.isExisting" class="new-badge">🆕 Nueva</span>
+              </div>
+              <button 
+                type="button" 
+                class="btn-remove" 
+                (click)="removeImage(i)"
+                [title]="image.isExisting ? 'Eliminar imagen existente' : 'Remover imagen nueva'">
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ✅ Mensaje cuando no hay imágenes -->
+        <div *ngIf="selectedImages.length === 0" class="no-images-message">
+          <div class="no-images-content">
+            <span class="no-images-icon">🖼️</span>
+            <p class="no-images-text">
+              {{ isEditMode ? 'Esta especie no tiene imágenes.' : 'No has seleccionado ninguna imagen.' }}
+            </p>
+            <p class="no-images-requirement">
+              <strong>Es obligatorio agregar al menos 1 imagen.</strong>
+            </p>
+          </div>
+        </div>
+
+        <!-- ✅ Error de imágenes -->
+        <div *ngIf="errors.images" class="field-error">
+          {{ errors.images }}
+        </div>
+      </div>
+    </fieldset>
+
     <!-- Hábitat y Descripción -->
     <fieldset class="form-section">
       <legend>🌍 Hábitat y Descripción</legend>
@@ -122,19 +185,10 @@
             id="habitat"
             name="habitat"
             [(ngModel)]="formData.habitat"
-            #habitatField="ngModel"
-            required
-            placeholder="Ej: Bosque húmedo tropical"
             class="form-control"
-            [class.error]="isFieldInvalid('habitat', especieForm)"
-            list="habitats-list"
-            autocomplete="off">
-          
-          <datalist id="habitats-list">
-            <option *ngFor="let habitat of habitatsComunes" [value]="habitat">
-          </datalist>
-          
-          <select (change)="onHabitatChange($event)" class="form-select-helper">
+            placeholder="Ej: Bosque húmedo tropical"
+            required>
+          <select (change)="onHabitatChange($event)" class="select-helper">
             <option value="">Seleccionar hábitat común...</option>
             <option *ngFor="let habitat of habitatsComunes" [value]="habitat">
               {{ habitat }}
@@ -143,7 +197,7 @@
         </div>
         
         <div *ngIf="isFieldInvalid('habitat', especieForm)" class="field-error">
-          {{ getFieldError('habitat') || 'El hábitat es requerido' }}
+          {{ getFieldError('habitat') }}
         </div>
       </div>
 
@@ -153,11 +207,11 @@
           id="descripcion"
           name="descripcion"
           [(ngModel)]="formData.descripcion"
+          class="form-control textarea-large"
           rows="4"
-          placeholder="Descripción detallada de la especie, características distintivas, importancia ecológica..."
-          class="form-control textarea-large"></textarea>
+          placeholder="Descripción detallada de la especie, características distintivas, importancia ecológica..."></textarea>
         <small class="form-hint">
-          Incluye características distintivas, importancia ecológica, usos tradicionales, etc.
+          Información adicional sobre características, comportamiento, distribución, etc.
         </small>
       </div>
     </fieldset>
@@ -172,56 +226,48 @@
           id="ubicacion_predefinida"
           (change)="onUbicacionChange($event)"
           class="form-control">
-          <option value="">Seleccionar ubicación conocida...</option>
+          <option value="">Seleccionar ubicación predefinida...</option>
           <option *ngFor="let ubicacion of ubicacionesPredefinidas" [value]="ubicacion.nombre">
             {{ ubicacion.nombre }}
           </option>
         </select>
         <small class="form-hint">
-          O ingresa las coordenadas manualmente abajo
+          Selecciona una ubicación conocida o ingresa coordenadas manualmente
         </small>
       </div>
 
       <div class="form-row">
         <div class="form-group">
-          <label for="latitud" class="required">Latitud</label>
+          <label for="latitud">Latitud</label>
           <input
             type="number"
             id="latitud"
             name="latitud"
             [(ngModel)]="formData.latitud"
-            #latitudField="ngModel"
-            required
-            step="0.000001"
-            min="-90"
-            max="90"
-            placeholder="-0.1807"
             class="form-control"
-            [class.error]="isFieldInvalid('latitud', especieForm)">
-          
-          <div *ngIf="isFieldInvalid('latitud', especieForm)" class="field-error">
-            {{ getFieldError('latitud') || 'Latitud inválida' }}
+            placeholder="-0.1807"
+            step="0.0001"
+            min="-90"
+            max="90">
+          <div *ngIf="errors.latitud" class="field-error">
+            {{ errors.latitud }}
           </div>
         </div>
 
         <div class="form-group">
-          <label for="longitud" class="required">Longitud</label>
+          <label for="longitud">Longitud</label>
           <input
             type="number"
             id="longitud"
             name="longitud"
             [(ngModel)]="formData.longitud"
-            #longitudField="ngModel"
-            required
-            step="0.000001"
-            min="-180"
-            max="180"
-            placeholder="-78.4678"
             class="form-control"
-            [class.error]="isFieldInvalid('longitud', especieForm)">
-          
-          <div *ngIf="isFieldInvalid('longitud', especieForm)" class="field-error">
-            {{ getFieldError('longitud') || 'Longitud inválida' }}
+            placeholder="-78.4678"
+            step="0.0001"
+            min="-180"
+            max="180">
+          <div *ngIf="errors.longitud" class="field-error">
+            {{ errors.longitud }}
           </div>
         </div>
       </div>
@@ -234,7 +280,7 @@
       <div class="coordinates-preview">
         <strong>📍 Ubicación actual:</strong>
         <span class="coordinates">
-          {{ formData.latitud | number:'1.6-6' }}, {{ formData.longitud | number:'1.6-6' }}
+          {{ formData.latitud.toFixed(4) }}, {{ formData.longitud.toFixed(4) }}
         </span>
       </div>
     </fieldset>
@@ -253,44 +299,41 @@
             id="registrado_por"
             name="registrado_por"
             [(ngModel)]="formData.registrado_por"
-            placeholder="Nombre del investigador o institución"
             class="form-control"
-            autocomplete="off">
+            placeholder="Nombre del investigador o institución">
         </div>
 
         <div class="form-info">
           <p><strong>Fecha de registro:</strong> {{ getCurrentDate() }}</p>
-          <p><strong>ID:</strong> {{ isEditMode ? especie?.id : 'Se generará automáticamente' }}</p>
         </div>
       </div>
     </fieldset>
 
-    <!-- Botones de Acción -->
+    <!-- ✅ Botones de Acción - Validación actualizada -->
     <div class="form-actions">
       <button
         type="button"
         class="btn btn-secondary"
         (click)="closeForm()"
         [disabled]="isLoading">
-        Cancelar
+        ← Volver al Catálogo
       </button>
 
       <button
         type="button"
         class="btn btn-outline"
         (click)="resetForm()"
-        [disabled]="isLoading"
-        *ngIf="!isEditMode">
-        Limpiar
+        [disabled]="isLoading">
+        🔄 Limpiar Formulario
       </button>
 
       <button
         type="submit"
         class="btn btn-primary"
-        [disabled]="isLoading || especieForm.invalid">
-        <span *ngIf="isLoading"> Guardando...</span>
+        [disabled]="isLoading || especieForm.invalid || (selectedImages.length === 0 && !isEditMode)">
+        <span *ngIf="isLoading">⏳ Guardando...</span>
         <span *ngIf="!isLoading">
-          {{ isEditMode ? 'Actualizar Especie' : '🌿 Crear Especie' }}
+          {{ isEditMode ? '💾 Actualizar Especie' : '🌿 Crear Especie' }}
         </span>
       </button>
     </div>

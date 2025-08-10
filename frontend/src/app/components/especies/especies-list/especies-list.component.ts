@@ -1,19 +1,19 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { EspeciesService } from '../../../services/especies.service';
 import { Especie } from '../../../models/especies.model';
 import { Comentario} from '../../../models/especies.model';
-import { EspeciesFormComponent } from '../especies-form/especies-form.component';
 import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-especies-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, EspeciesFormComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './especies-list.component.html',
   styleUrls: ['./especies-list.component.scss']
 })
@@ -29,8 +29,10 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
   selectedEstado = '';
   familias: string[] = [];
 
-  // Estado del formulario
-  showCreateForm = false;
+
+
+  // ✅ AGREGAR: Output para emitir evento de edición
+  @Output() editEspecie = new EventEmitter<Especie>();
 
   // Estadísticas
   totalEspecies = 0;
@@ -43,7 +45,10 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  constructor(private especiesService: EspeciesService) {}
+  constructor(
+    private especiesService: EspeciesService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.loadData();
@@ -73,14 +78,7 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
       });
   }
 
-  // Método para manejar la creación de especies (nuevo)
-  onEspecieCreated(nuevaEspecie: Especie): void {
-    this.showCreateForm = false;
-    this.refreshData(); // Actualizar la lista de especies
-    console.log('Nueva especie creada:', nuevaEspecie);
-  }
 
-  // Resto de tus métodos existentes (filter, generateReport, etc.)
   private updateFamilias(): void {
     this.familias = [...new Set(this.especies.map(e => e.familia))].sort();
   }
@@ -122,17 +120,23 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
   }
 
   selectEspecie(especie: Especie): void {
-    this.selectedEspecie = this.selectedEspecie?.id === especie.id ? null : especie;
+    this.router.navigate(['/especies', especie.id]);
+
   }
 
-  editEspecie(especie: Especie): void {
-    console.log('Editar especie:', especie);
+  // ✅ MODIFICAR: Método para editar especie (ahora emite evento)
+  onEditEspecie(especie: Especie): void {
+    console.log('Emitiendo evento de edición para:', especie.nombre_cientifico);
+    this.editEspecie.emit(especie);
   }
 
   deleteEspecie(especie: Especie): void {
     if (confirm(`¿Estás seguro de eliminar "${especie.nombre_vulgar}"?`)) {
       this.especiesService.deleteEspecie(especie.id!).subscribe({
-        next: () => console.log('Especie eliminada exitosamente'),
+        next: () => {
+          console.log('Especie eliminada exitosamente');
+          // La lista se actualizará automáticamente por el observable
+        },
         error: (error) => {
           console.error('Error eliminando especie:', error);
           alert('Error al eliminar la especie: ' + error.message);
@@ -143,6 +147,8 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
 
   viewOnMap(especie: Especie): void {
     console.log('Ver en mapa:', especie);
+    // TODO: Implementar navegación al mapa con la especie seleccionada
+    // this.router.navigate(['/mapa'], { queryParams: { especieId: especie.id } });
   }
 
   refreshData(): void {
@@ -150,56 +156,54 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
   }
 
   // Métodos para comentarios
-
- private loadComentariosForAllSpecies(): void {
-  // Ya no necesitamos cargar comentarios por separado
-  // Los comentarios vienen incluidos en cada especie
-  this.especies.forEach(especie => {
-    this.caracteresRestantes[especie.id!] = 500;
-    // Inicializamos el campo de nuevo comentario
-    this.nuevoComentario[especie.id!] = '';
-  });
-}
-
-agregarComentario(especieId: string) {
-  if (!this.nuevoComentario[especieId]?.trim()) return;
-
-  const nuevoComent: Comentario = {
-    texto: this.nuevoComentario[especieId].trim(),
-    autor: 'Usuario', // Reemplaza con tu lógica de usuario real
-    fecha: new Date().toISOString()
-  };
-
-  this.cargandoComentario[especieId] = true;
-
-  this.especiesService.agregarComentario(especieId, nuevoComent)
-    .subscribe({
-      next: (especieActualizada) => {
-        const index = this.especies.findIndex(e => e.id === especieId);
-        if (index !== -1) {
-          // ✅ Actualizamos solo el array de comentarios
-          this.especies[index].comentarios = especieActualizada.comentarios;
-        }
-
-        // Actualizamos la lista filtrada
-        this.especiesFiltradas = [...this.especies];
-
-        // Limpiar el campo de texto
-        this.nuevoComentario[especieId] = '';
-
-        // Marcar como terminado
-        this.cargandoComentario[especieId] = false;
-      },
-      error: (err) => {
-        console.error('Error:', err);
-        this.cargandoComentario[especieId] = false;
-        alert('Error al agregar comentario: ' + err.message);
-      }
+  private loadComentariosForAllSpecies(): void {
+    // Ya no necesitamos cargar comentarios por separado
+    // Los comentarios vienen incluidos en cada especie
+    this.especies.forEach(especie => {
+      this.caracteresRestantes[especie.id!] = 500;
+      // Inicializamos el campo de nuevo comentario
+      this.nuevoComentario[especie.id!] = '';
     });
-}
+  }
 
+  agregarComentario(especieId: string) {
+    if (!this.nuevoComentario[especieId]?.trim()) return;
 
-  // Métodos para reportes (existente)
+    const nuevoComent: Comentario = {
+      texto: this.nuevoComentario[especieId].trim(),
+      autor: 'Usuario', // Reemplaza con tu lógica de usuario real
+      fecha: new Date().toISOString()
+    };
+
+    this.cargandoComentario[especieId] = true;
+
+    this.especiesService.agregarComentario(especieId, nuevoComent)
+      .subscribe({
+        next: (especieActualizada) => {
+          const index = this.especies.findIndex(e => e.id === especieId);
+          if (index !== -1) {
+            // ✅ Actualizamos solo el array de comentarios
+            this.especies[index].comentarios = especieActualizada.comentarios;
+          }
+
+          // Actualizamos la lista filtrada
+          this.especiesFiltradas = [...this.especies];
+
+          // Limpiar el campo de texto
+          this.nuevoComentario[especieId] = '';
+
+          // Marcar como terminado
+          this.cargandoComentario[especieId] = false;
+        },
+        error: (err) => {
+          console.error('Error:', err);
+          this.cargandoComentario[especieId] = false;
+          alert('Error al agregar comentario: ' + err.message);
+        }
+      });
+  }
+
+  // Métodos para reportes (mantener existentes)
   generateReport(format: 'csv' | 'pdf'): void {
     const especiesReporte = this.especiesFiltradas;
 

@@ -118,17 +118,13 @@
 
 .especies-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); // Puedes ajustar el minmax
   gap: 20px;
 }
 
+
 .especie-card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.1);
-  overflow: hidden;
-  transition: all 0.3s ease;
-  cursor: pointer;
+  border-radius: 1%;
   
   &:hover {
     transform: translateY(-5px);
@@ -144,7 +140,7 @@
     background: linear-gradient(135deg, #2e7d32, #4caf50);
     color: white;
     padding: 16px 20px;
-    
+    border-radius: 8px 8px 0 0;
     .nombre-cientifico {
       font-size: 1.1rem;
       font-style: italic;
@@ -404,3 +400,31 @@
   }
 }
 
+.card-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  background: #f8f8f8;  
+  overflow: hidden;
+  margin-bottom: 8px;
+
+  .especie-thumb {
+    width: 100%;         // Ocupa todo el ancho del contenedor
+    height: 100%;        // Ocupa toda la altura
+    object-fit: cover;
+    max-width: none;     // Elimina el límite de 180px
+    max-height: none;    // Elimina el límite de 160px
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    background: #eaeaea;
+    transition: transform 0.2s;
+  }
+}
+// Opcional: para que todas las tarjetas tengan el mismo alto
+.especie-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 380px;
+  max-width: 385px;
+}

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router, ActivatedRoute } from '@angular/router';
 import { EspeciesListComponent } from '../../components/especies/especies-list/especies-list.component';
 import { EspeciesService } from '../../services/especies.service';
 import { Especie } from '../../models/especies.model';
@@ -10,6 +11,11 @@ import { Especie } from '../../models/especies.model';
   imports: [CommonModule, EspeciesListComponent],
   template: `
     <div class="catalogo-container">
+      <!-- Mensaje de éxito/error -->
+      <div *ngIf="message" class="alert alert-success">
+        {{ message }}
+      </div>
+
       <!-- Hero Section -->
       <section class="hero-section">
         <div class="hero-content">
@@ -32,6 +38,16 @@ import { Especie } from '../../models/especies.model';
               <span class="stat-label">Regiones</span>
             </div>
           </div>
+          
+          <!-- Botón Nueva Especie -->
+          <div class="hero-actions">
+            <button 
+              type="button" 
+              class="btn btn-primary btn-large"
+              (click)="onNuevaEspecie()">
+              🌿 Registrar Nueva Especie
+            </button>
+          </div>
         </div>
         <div class="hero-image">
           <div class="floating-icon">🦜</div>
@@ -43,7 +59,9 @@ import { Especie } from '../../models/especies.model';
 
       <!-- Lista de Especies -->
       <section class="especies-section">
-        <app-especies-list></app-especies-list>
+        <app-especies-list 
+          (editEspecie)="onEditEspecie($event)">
+        </app-especies-list>
       </section>
     </div>
   `,
@@ -52,11 +70,17 @@ import { Especie } from '../../models/especies.model';
 export class CatalogoComponent implements OnInit {
   totalEspecies = 0;
   totalFamilias = 0;
+  message = '';
 
-  constructor(private especiesService: EspeciesService) {}
+  constructor(
+    private especiesService: EspeciesService,
+    private router: Router,
+    private route: ActivatedRoute
+  ) {}
 
   ngOnInit(): void {
     this.loadStats();
+    this.checkForMessages();
   }
 
   private loadStats(): void {
@@ -64,5 +88,32 @@ export class CatalogoComponent implements OnInit {
       this.totalEspecies = especies.length;
       this.totalFamilias = new Set(especies.map(e => e.familia)).size;
     });
+  }
+
+  private checkForMessages(): void {
+    this.route.queryParams.subscribe(params => {
+      if (params['message']) {
+        this.message = params['message'];
+        // Clear message after 5 seconds
+        setTimeout(() => {
+          this.message = '';
+          // Remove query params from URL
+          this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: {},
+            replaceUrl: true
+          });
+        }, 5000);
+      }
+    });
+  }
+
+  onNuevaEspecie(): void {
+    this.router.navigate(['/registro-especie']);
+  }
+
+  // Corregir el tipo del parámetro
+  onEditEspecie(especie: Especie): void {
+    this.router.navigate(['/editar-especie', especie.id]);
   }
 }

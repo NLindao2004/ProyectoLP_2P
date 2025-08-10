@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
-import { Especie, Comentario } from '../models/especies.model'; // ✅ Agregar Comentario aquí
+import { Especie, Comentario, ImagenEspecie } from '../models/especies.model'; // ✅ Agregar ImagenEspecie
 
 export interface ApiResponse {
   success: boolean;
@@ -38,6 +38,14 @@ export class EspeciesService {
     headers: new HttpHeaders({
       'Content-Type': 'application/json',
       'Accept': 'application/json'
+    })
+  };
+
+  // ✅ AGREGAR: HTTP options para FormData (sin Content-Type)
+  private httpOptionsFormData = {
+    headers: new HttpHeaders({
+      'Accept': 'application/json'
+      // No incluir Content-Type para FormData
     })
   };
 
@@ -121,6 +129,54 @@ export class EspeciesService {
       );
   }
 
+  getEspecieById(id: string): Observable<Especie> {
+    this.loadingSubject.next(true);
+
+    return this.http.get<any>(`${this.API_URL}/${id}`, this.httpOptions)
+      .pipe(
+        map(response => {
+          console.log('🔧 Respuesta del backend para especie individual:', response);
+          
+          if (response.success && response.data) {
+            return this.convertirBackendAFrontend(response.data);
+          } else {
+            throw new Error(response.message || 'Especie no encontrada');
+          }
+        }),
+        tap(() => {
+          this.loadingSubject.next(false);
+        }),
+        catchError(error => {
+          this.loadingSubject.next(false);
+          return this.handleError(error);
+        })
+      );
+  }
+
+  // ✅ AGREGAR: Método para convertir datos del frontend al backend
+  private convertirFrontendABackend(especieData: Especie): any {
+    return {
+      // Campos básicos
+      scientific_name: especieData.nombre_cientifico,
+      common_name: especieData.nombre_vulgar,
+      family: especieData.familia,
+      status: especieData.estado_conservacion,
+      habitat: especieData.habitat,
+      description: especieData.descripcion || '',
+      
+      // Coordenadas
+      latitud: especieData.coordenadas?.latitud || 0,
+      longitud: especieData.coordenadas?.longitud || 0,
+      
+      // Campos adicionales
+      registrado_por: especieData.registrado_por || 'Usuario del sistema',
+      activo: especieData.activo !== undefined ? especieData.activo : true,
+      
+      // Si hay fecha de registro, incluirla
+      ...(especieData.fecha_registro && { created_at: especieData.fecha_registro })
+    };
+  }
+
   // ✅ CONVERSIÓN DE DATOS (mejorada)
   private convertirBackendAFrontend(backendData: any): Especie {
     // Debug para ver qué datos llegan
@@ -135,27 +191,57 @@ export class EspeciesService {
       habitat: backendData.habitat || '',
       descripcion: backendData.description || backendData.descripcion || '',
       coordenadas: {
-        latitud: Number(backendData.latitude || backendData.latitud || 0),
-        longitud: Number(backendData.longitude || backendData.longitud || 0)
+        latitud: Number(
+          backendData.coordenadas?.latitud ??
+          backendData.latitude ??
+          backendData.latitud ??
+          0
+        ),
+        longitud: Number(
+          backendData.coordenadas?.longitud ??
+          backendData.longitude ??
+          backendData.longitud ??
+          0
+        )
       },
       fecha_registro: backendData.created_at || backendData.fecha_registro || new Date().toISOString(),
       registrado_por: backendData.registrado_por || 'sistema',
-      activo: backendData.activo !== undefined ? backendData.activo : true
+      activo: backendData.activo !== undefined ? backendData.activo : true,
+      // ✅ AGREGAR: Conversión de imágenes
+      imagenes: this.convertirImagenesBackendAFrontend(backendData.imagenes || backendData.images || []),
+      // ✅ AGREGAR: Conversión de comentarios
+      comentarios: this.convertirComentariosBackendAFrontend(backendData.comentarios || backendData.comments || [])
     };
   }
 
-  private convertirFrontendABackend(frontendData: Especie): any {
-    return {
-      nombre_cientifico: frontendData.nombre_cientifico,
-      nombre_vulgar: frontendData.nombre_vulgar,
-      familia: frontendData.familia,
-      estado_conservacion: frontendData.estado_conservacion,
-      habitat: frontendData.habitat,
-      descripcion: frontendData.descripcion,
-      latitud: frontendData.coordenadas?.latitud || 0,
-      longitud: frontendData.coordenadas?.longitud || 0,
-      registrado_por: frontendData.registrado_por || 'sistema'
-    };
+  // ✅ AGREGAR: Método para convertir imágenes del backend
+  private convertirImagenesBackendAFrontend(imagenesBackend: any[]): ImagenEspecie[] {
+    if (!Array.isArray(imagenesBackend)) {
+      return [];
+    }
+
+    return imagenesBackend.map((imagen: any) => ({
+      id: imagen.id || imagen._id || '',
+      url: imagen.url || imagen.path || '',
+      nombre: imagen.nombre || imagen.name || imagen.filename || 'Imagen',
+      descripcion: imagen.descripcion || imagen.description || '',
+      size: imagen.size || 0,
+      mime_type: imagen.mime_type || imagen.type || 'image/jpeg'
+    }));
+  }
+
+  // ✅ AGREGAR: Método para convertir comentarios del backend
+  private convertirComentariosBackendAFrontend(comentariosBackend: any[]): Comentario[] {
+    if (!Array.isArray(comentariosBackend)) {
+      return [];
+    }
+
+    return comentariosBackend.map((comentario: any) => ({
+      id: comentario.id || comentario._id || '',
+      texto: comentario.texto || comentario.text || '',
+      autor: comentario.autor || comentario.author || 'Anónimo',
+      fecha: comentario.fecha || comentario.created_at || new Date().toISOString()
+    }));
   }
 
   // ✅ MÉTODOS CRUD COMPLETOS
@@ -171,6 +257,27 @@ export class EspeciesService {
             return this.convertirBackendAFrontend(response.data);
           } else {
             throw new Error(response.message || 'Error al crear especie');
+          }
+        }),
+        tap(nuevaEspecie => {
+          const especiesActuales = this.especiesSubject.value;
+          this.especiesSubject.next([...especiesActuales, nuevaEspecie]);
+          this.loadingSubject.next(false);
+        }),
+        catchError(this.handleError.bind(this))
+      );
+  }
+
+  createEspecieWithImages(formData: FormData): Observable<Especie> {
+    this.loadingSubject.next(true);
+
+    return this.http.post<any>(this.API_URL, formData, this.httpOptionsFormData)
+      .pipe(
+        map(response => {
+          if (response.success) {
+            return this.convertirBackendAFrontend(response.data);
+          } else {
+            throw new Error(response.message || 'Error al crear especie con imágenes');
           }
         }),
         tap(nuevaEspecie => {
@@ -209,6 +316,32 @@ export class EspeciesService {
       );
   }
 
+  updateEspecieWithImages(id: string, formData: FormData): Observable<Especie> {
+    this.loadingSubject.next(true);
+
+    // Cambia PUT por POST y agrega _method=PUT
+    return this.http.post<any>(`${this.API_URL}/${id}?_method=PUT`, formData, this.httpOptionsFormData)
+      .pipe(
+        map(response => {
+          if (response.success) {
+            return this.convertirBackendAFrontend(response.data);
+          } else {
+            throw new Error(response.message || 'Error al actualizar especie con imágenes');
+          }
+        }),
+        tap(especieActualizada => {
+          const especiesActuales = this.especiesSubject.value;
+          const index = especiesActuales.findIndex(e => e.id === id);
+          if (index >= 0) {
+            especiesActuales[index] = especieActualizada;
+            this.especiesSubject.next([...especiesActuales]);
+          }
+          this.loadingSubject.next(false);
+        }),
+        catchError(this.handleError.bind(this))
+      );
+  }
+
   deleteEspecie(id: string): Observable<void> {
     this.loadingSubject.next(true);
 
@@ -223,6 +356,58 @@ export class EspeciesService {
           const especiesActuales = this.especiesSubject.value;
           const especiesActualizadas = especiesActuales.filter(e => e.id !== id);
           this.especiesSubject.next(especiesActualizadas);
+          this.loadingSubject.next(false);
+        }),
+        catchError(this.handleError.bind(this))
+      );
+  }
+
+  // ✅ AGREGAR: Método para eliminar imagen específica
+  deleteImagenEspecie(especieId: string, imagenId: string): Observable<Especie> {
+    this.loadingSubject.next(true);
+
+    return this.http.delete<any>(`${this.API_URL}/${especieId}/imagenes/${imagenId}`, this.httpOptions)
+      .pipe(
+        map(response => {
+          if (response.success) {
+            return this.convertirBackendAFrontend(response.data);
+          } else {
+            throw new Error(response.message || 'Error al eliminar imagen');
+          }
+        }),
+        tap(especieActualizada => {
+          const especiesActuales = this.especiesSubject.value;
+          const index = especiesActuales.findIndex(e => e.id === especieId);
+          if (index >= 0) {
+            especiesActuales[index] = especieActualizada;
+            this.especiesSubject.next([...especiesActuales]);
+          }
+          this.loadingSubject.next(false);
+        }),
+        catchError(this.handleError.bind(this))
+      );
+  }
+
+  // ✅ AGREGAR: Método para agregar imágenes a especie existente
+  addImagenesEspecie(especieId: string, formData: FormData): Observable<Especie> {
+    this.loadingSubject.next(true);
+
+    return this.http.post<any>(`${this.API_URL}/${especieId}/imagenes`, formData, this.httpOptionsFormData)
+      .pipe(
+        map(response => {
+          if (response.success) {
+            return this.convertirBackendAFrontend(response.data);
+          } else {
+            throw new Error(response.message || 'Error al agregar imágenes');
+          }
+        }),
+        tap(especieActualizada => {
+          const especiesActuales = this.especiesSubject.value;
+          const index = especiesActuales.findIndex(e => e.id === especieId);
+          if (index >= 0) {
+            especiesActuales[index] = especieActualizada;
+            this.especiesSubject.next([...especiesActuales]);
+          }
           this.loadingSubject.next(false);
         }),
         catchError(this.handleError.bind(this))

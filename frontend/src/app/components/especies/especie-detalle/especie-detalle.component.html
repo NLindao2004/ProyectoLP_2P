@@ -1,0 +1,36 @@
+<div class="detalle-container" *ngIf="especie">
+  <button class="btn-volver" (click)="goBack()">← Volver</button>
+  <div class="detalle-main">
+    <!-- Lado izquierdo: Info de la especie -->
+    <div class="detalle-info">
+      <h2>{{ especie.nombre_cientifico }}</h2>
+      <div class="detalle-imagenes">
+        <img *ngFor="let img of especie.imagenes" [src]="img.url" [alt]="img.nombre || especie.nombre_cientifico" />
+      </div>
+      <p><strong>Nombre vulgar:</strong> {{ especie.nombre_vulgar }}</p>
+      <p><strong>Familia:</strong> {{ especie.familia }}</p>
+      <p><strong>Estado de conservación:</strong> {{ especie.estado_conservacion }}</p>
+      <p><strong>Hábitat:</strong> {{ especie.habitat }}</p>
+      <p><strong>Descripción:</strong> {{ especie.descripcion }}</p>
+      <p><strong>Ubicación:</strong> {{ especie.coordenadas.latitud }}, {{ especie.coordenadas.longitud }}</p>
+      <p><strong>Registrado por:</strong> {{ especie.registrado_por }}</p>
+      <p><strong>Fecha de registro:</strong> {{ especie.fecha_registro | date:'dd/MM/yyyy HH:mm' }}</p>
+    </div>
+    <!-- Lado derecho: Mapa -->
+    <div class="detalle-mapa">
+      <div class="map-placeholder">
+        <p>Mapa de la ubicación</p>
+        <img 
+          *ngIf="especie.coordenadas"
+          [src]="'https://maps.googleapis.com/maps/api/staticmap?center=' + especie.coordenadas.latitud + ',' + especie.coordenadas.longitud + '&zoom=10&size=300x200&markers=color:red|' + especie.coordenadas.latitud + ',' + especie.coordenadas.longitud + '&key=AIzaSyDFMwz7hhgfTzREBS8F_ctBfhz4L8dFyBQ'"
+          alt="Mapa de la especie"
+        />
+      </div>
+    </div>
+  </div>
+  <!-- Zona de comentarios debajo de ambos -->
+  <div class="detalle-comentarios">
+    <h3>Comentarios</h3>
+    <p>Próximamente: sección de comentarios...</p>
+  </div>
+</div>

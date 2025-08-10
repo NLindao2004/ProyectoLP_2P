@@ -5,6 +5,16 @@ export interface Comentario {
   fecha: string;
 }
 
+// ✅ AGREGAR: Nueva interfaz para imágenes
+export interface ImagenEspecie {
+  id?: string;
+  url: string;
+  nombre?: string;
+  descripcion?: string;
+  size?: number;
+  mime_type?: string;
+}
+
 export interface Especie {
   id?: string;
   nombre_cientifico: string;
@@ -21,7 +31,8 @@ export interface Especie {
   fecha_actualizacion?: string;
   registrado_por: string;
   activo?: boolean;
-  comentarios?: Comentario[]; // ✅ Agregar esta línea
+  comentarios?: Comentario[];
+  imagenes?: ImagenEspecie[]; // ✅ AGREGAR: Propiedad para imágenes
 }
 
 export interface EspecieFormData {

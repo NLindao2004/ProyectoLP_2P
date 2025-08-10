@@ -1,13 +1,11 @@
 <div class="especies-container">
-  <!-- Header -->
+  <!-- Header - ✅ ELIMINAR botón Nueva Especie -->
   <div class="header">
     <h2>🌿 Catálogo de Especies</h2>
     <div class="header-actions">
-      <button class="btn-primary" (click)="showCreateForm = true">
-        ➕ Nueva Especie
-      </button>
+      <!-- ❌ ELIMINAR: botón Nueva Especie - ahora se maneja en CatalogoComponent -->
       <button class="btn-secondary" (click)="refreshData()">
-        Actualizar
+        🔄 Actualizar
       </button>
     </div>
   </div>
@@ -77,6 +75,18 @@
         <span class="familia">{{ especie.familia }}</span>
       </div>
       
+      <div class="card-image">
+        <img
+          *ngIf="especie.imagenes && especie.imagenes.length > 0"
+          [src]="especie.imagenes[0].url"
+          [alt]="especie.imagenes[0].nombre || especie.nombre_cientifico"
+          class="especie-thumb"
+        />
+        <div *ngIf="!especie.imagenes || especie.imagenes.length === 0" class="no-image">
+          <span>Sin imagen</span>
+        </div>
+      </div>
+
       <div class="card-body">
         <p class="nombre-vulgar">
           <strong>Nombre vulgar:</strong> {{ especie.nombre_vulgar }}
@@ -97,15 +107,31 @@
         </p>
       </div>
       
+      <!-- ✅ MODIFICAR: Botones de acción -->
       <div class="card-actions">
-        <button class="btn-edit" (click)="editEspecie(especie); $event.stopPropagation()">Editar</button>
-        <button class="btn-delete" (click)="deleteEspecie(especie); $event.stopPropagation()">Eliminar</button>
-        <button class="btn-map" (click)="viewOnMap(especie); $event.stopPropagation()">Ver en Mapa</button>
+        <button 
+          class="btn-edit" 
+          (click)="onEditEspecie(especie); $event.stopPropagation()"
+          title="Editar especie">
+          Editar
+        </button>
+        <button 
+          class="btn-delete" 
+          (click)="deleteEspecie(especie); $event.stopPropagation()"
+          title="Eliminar especie">
+          Eliminar
+        </button>
+        <button 
+          class="btn-map" 
+          (click)="viewOnMap(especie); $event.stopPropagation()"
+          title="Ver en mapa">
+          Ver en Mapa
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Empty State -->
+  <!-- Empty State - ✅ ELIMINAR botón Nueva Especie -->
   <div *ngIf="!loading && especiesFiltradas.length === 0" class="empty-state">
     <div class="empty-icon">🌱</div>
     <h3>No se encontraron especies</h3>
@@ -113,27 +139,19 @@
       Intenta cambiar los filtros de búsqueda
     </p>
     <p *ngIf="!searchTerm && !selectedFamilia && !selectedEstado">
-      ¡Comienza agregando tu primera especie!
+      Parece que aún no hay especies registradas.
     </p>
-    <button class="btn-primary" (click)="showCreateForm = true">
-      ➕ Agregar Primera Especie
-    </button>
   </div>
 
-  <!-- Formulario de creación -->
-  <div *ngIf="showCreateForm" class="modal-overlay" (click)="showCreateForm = false">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <app-especies-form 
-        [especie]="null"
-        (especieCreated)="onEspecieCreated($event)"
-        (formClosed)="showCreateForm = false">
-      </app-especies-form>
-    </div>
-  </div>
+
 
   <!-- Botones de reporte -->
   <div class="report-button-container">
-    <button class="btn-report" (click)="generateReport('csv')">📄 CSV</button>
-    <button class="btn-report btn-pdf" (click)="generateReport('pdf')">📊 PDF</button>
+    <button class="btn-report" (click)="generateReport('csv')" title="Exportar a CSV">
+      📄 Exportar CSV
+    </button>
+    <button class="btn-report btn-pdf" (click)="generateReport('pdf')" title="Exportar a PDF">
+      📊 Exportar PDF
+    </button>
   </div>
 </div>

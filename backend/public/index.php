@@ -1,4 +1,16 @@
 <?php
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED & ~E_WARNING & ~E_NOTICE);
+@ini_set('display_errors', 0);
+@ini_set('display_startup_errors', 0);
+if (ob_get_level()) ob_clean();
+
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit();
+}
 
 // Verificar si es una llamada a la API
 $request_uri = $_SERVER['REQUEST_URI'];

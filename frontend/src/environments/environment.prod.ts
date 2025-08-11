@@ -4,17 +4,17 @@ export const environment = {
   
   // Firebase Configuration (Production)
   firebase: {
-    apiKey: "your-production-api-key",
-    authDomain: "your-project-id.firebaseapp.com",
-    projectId: "your-project-id",
-    storageBucket: "your-project-id.appspot.com",
-    messagingSenderId: "your-sender-id",
-    appId: "your-app-id",
+    apiKey: "AIzaSyBrvrvaZO-uv7JR63ZyxFrhoZtAZc--j6E",
+    authDomain: "terraverde-7bfbc.firebaseapp.com",
+    projectId: "terraverde-7bfbc",
+    storageBucket: "terraverde-7bfbc.appspot.com",
+    messagingSenderId: "812943234168",
+    appId: "1:812943234168:web:bb221d91a0d9604a11898d",
     measurementId: "your-measurement-id"
   },
   
   // Google Maps API
-  googleMapsApiKey: 'your-production-google-maps-api-key',
+  googleMapsApiKey: 'AIzaSyDFMwz7hhgfTzREBS8F_ctBfhz4L8dFyBQ',
   
   // PWA Configuration
   pwa: {

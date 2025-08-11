@@ -1,4 +1,5 @@
 <?php
+
 // Headers CORS para todas las rutas
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');

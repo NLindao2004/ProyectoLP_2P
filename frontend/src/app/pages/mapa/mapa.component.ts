@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { GoogleMapsModule, GoogleMap, MapMarker } from '@angular/google-maps';
 import { EspeciesService } from '../../services/especies.service';
 import { Especie } from '../../models/especies.model';
-
+import { HeaderComponent } from '../header/header.component';
 interface ProvinciaInfo {
   name: string;
   center: google.maps.LatLngLiteral;
@@ -20,7 +20,7 @@ interface ProvinciaInfo {
 @Component({
   selector: 'app-mapa',
   standalone: true,
-  imports: [CommonModule, FormsModule, GoogleMapsModule],
+  imports: [CommonModule, FormsModule, GoogleMapsModule, HeaderComponent],
   templateUrl: './mapa.component.html',
   styleUrls: ['./mapa.component.scss']
 })

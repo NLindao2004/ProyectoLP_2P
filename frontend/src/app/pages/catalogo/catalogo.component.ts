@@ -4,12 +4,13 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { EspeciesListComponent } from '../../components/especies/especies-list/especies-list.component';
 import { EspeciesService } from '../../services/especies.service';
 import { Especie } from '../../models/especies.model';
-
+import { HeaderComponent } from '../header/header.component';
 @Component({
   selector: 'app-catalogo',
   standalone: true,
-  imports: [CommonModule, EspeciesListComponent],
+  imports: [CommonModule, EspeciesListComponent, HeaderComponent],
   template: `
+    <app-header></app-header>
     <div class="catalogo-container">
       <!-- Mensaje de éxito/error -->
       <div *ngIf="message" class="alert alert-success">

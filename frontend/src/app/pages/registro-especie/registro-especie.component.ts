@@ -1,12 +1,13 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EspeciesFormComponent } from '../../components/especies/especies-form/especies-form.component';
-
+import { HeaderComponent } from '../header/header.component';
 @Component({
   selector: 'app-registro-especie',
   standalone: true,
-  imports: [CommonModule, EspeciesFormComponent],
+  imports: [CommonModule, EspeciesFormComponent, HeaderComponent],
   template: `
+    <app-header></app-header>
     <div class="registro-container">
       <!-- Header -->
       <div class="page-header">

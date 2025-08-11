@@ -1,5 +1,8 @@
-
 <?php
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED & ~E_WARNING & ~E_NOTICE);
+@ini_set('display_errors', 0);
+@ini_set('display_startup_errors', 0);
+if (ob_get_level()) ob_clean();
 
 // Configurar CORS para Angular
 header('Access-Control-Allow-Origin: *');
@@ -67,11 +70,19 @@ if (preg_match('#^/api/especies/([^/]+)$#', $path, $matches)) {
     exit;
 }
 
-// 5. Health check
-if ($path === '/api/health') {
-    require_once __DIR__ . '/../src/Controllers/HealthController.php';
-    $controller = new HealthController();
-    $controller->check();
+// ✅ RUTAS para usuarios
+if (preg_match('#^/api/usuarios/?$#', $path)) {
+    require_once __DIR__ . '/../src/Controllers/UsuariosController.php';
+    $controller = new UsuariosController();
+    $controller->handleRequest($request_method);
+    exit;
+}
+
+// ✅ RUTA para usuario específico (opcional)
+if (preg_match('#^/api/usuarios/([^/]+)$#', $path, $matches)) {
+    require_once __DIR__ . '/../src/Controllers/UsuariosController.php';
+    $controller = new UsuariosController();
+    $controller->handleRequest($request_method, $matches[1]);
     exit;
 }
 

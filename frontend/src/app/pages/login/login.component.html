@@ -1,0 +1,41 @@
+<div class="login-container">
+  <div class="login-card">
+    <img src="assets/Icon_TerraVerde.png" alt="TerraVerde" class="logo">
+    <h2>Iniciar sesión</h2>
+    <form (ngSubmit)="onLogin()" #loginForm="ngForm" autocomplete="off">
+      <label for="email">Correo electrónico</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        [(ngModel)]="email"
+        required
+        placeholder="usuario@email.com"
+        autocomplete="username"
+      />
+
+      <label for="password">Contraseña</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        [(ngModel)]="password"
+        required
+        placeholder="Contraseña"
+        autocomplete="current-password"
+      />
+
+      <button type="submit" [disabled]="loginForm.invalid">Ingresar</button>
+    </form>
+    <div *ngIf="error" class="error-msg">
+      {{ error }}
+    </div>
+    <div class="login-footer">
+      ¿No tienes cuenta? <a href="#" (click)="goToRegistro(); $event.preventDefault()">Regístrate</a>
+    </div>
+    <button type="button" class="google-btn" (click)="onLoginWithGoogle()">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" />
+      Iniciar sesión con Google
+    </button>
+  </div>
+</div>

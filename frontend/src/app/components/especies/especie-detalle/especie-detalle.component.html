@@ -1,5 +1,6 @@
 <div class="detalle-container" *ngIf="especie">
   <button class="btn-volver" (click)="goBack()">← Volver</button>
+  
   <div class="detalle-main">
     <!-- Lado izquierdo: Info de la especie -->
     <div class="detalle-info">
@@ -28,9 +29,46 @@
       </div>
     </div>
   </div>
-  <!-- Zona de comentarios debajo de ambos -->
+  
+  <!-- Zona de comentarios -->
   <div class="detalle-comentarios">
-    <h3>Comentarios</h3>
-    <p>Próximamente: sección de comentarios...</p>
+    <h3>Comentarios ({{especie.comentarios?.length || 0}})</h3>
+    
+    <!-- Lista de comentarios -->
+    <div class="comentarios-lista" *ngIf="especie.comentarios && especie.comentarios.length > 0">
+      <div class="comentario-item" *ngFor="let comentario of especie.comentarios">
+        <div class="comentario-header">
+          <span class="comentario-autor">{{ comentario.autor || 'Anónimo' }}</span>
+          <span class="comentario-fecha">{{ comentario.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        <div class="comentario-texto">{{ comentario.texto }}</div>
+      </div>
+    </div>
+    
+    <!-- Formulario para agregar comentarios (reemplaza el mensaje sin comentarios) -->
+    <div class="comentario-form-container">
+      <div class="comentario-form">
+        <h4>Agregar comentario</h4>
+        <form (ngSubmit)="agregarComentario()" #comentarioForm="ngForm">
+          <div class="form-group">
+            <label for="autor">Nombre (opcional):</label>
+            <input type="text" id="autor" name="autor" [(ngModel)]="nuevoComentario.autor" 
+                   placeholder="Tu nombre o anónimo">
+          </div>
+          <div class="form-group">
+            <label for="texto">Comentario:</label>
+            <textarea id="texto" name="texto" [(ngModel)]="nuevoComentario.texto" 
+                      required placeholder="Escribe tu comentario aquí..."></textarea>
+          </div>
+          <button type="submit" [disabled]="!comentarioForm.form.valid || enviandoComentario">
+            <span *ngIf="!enviandoComentario">Enviar comentario</span>
+            <span *ngIf="enviandoComentario">Enviando...</span>
+          </button>
+          <div *ngIf="errorComentario" class="error-message">
+            {{ errorComentario }}
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </div>

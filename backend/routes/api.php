@@ -1,8 +1,6 @@
+
 <?php
-error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED & ~E_WARNING & ~E_NOTICE);
-@ini_set('display_errors', 0);
-@ini_set('display_startup_errors', 0);
-if (ob_get_level()) ob_clean();
+
 
 // Configurar CORS para Angular
 header('Access-Control-Allow-Origin: *');
@@ -24,7 +22,27 @@ $request_method = $_SERVER['REQUEST_METHOD'];
 // Remover query parameters y obtener solo el path
 $path = parse_url($request_uri, PHP_URL_PATH);
 
-// ✅ RUTAS para especies
+error_log("Solicitud recibida: $request_method $path");
+
+// 1. RUTA PARA AGREGAR COMENTARIOS (DEBE ESTAR PRIMERO)
+if (preg_match('#^/api/especies/([^/]+)/comentarios$#', $path, $matches)) {
+    error_log("Ruta de comentarios detectada para especie ID: {$matches[1]}");
+    if ($request_method === 'POST') {
+        require_once __DIR__ . '/../src/Controllers/EspeciesController.php';
+        $controller = new EspeciesController();
+        $controller->agregarComentario($matches[1]);
+        exit;
+    } else {
+        http_response_code(405);
+        echo json_encode([
+            'success' => false,
+            'message' => 'Método no permitido. Use POST'
+        ]);
+        exit;
+    }
+}
+
+// 2. RUTAS para especies
 if (preg_match('#^/api/especies/?$#', $path)) {
     require_once __DIR__ . '/../src/Controllers/EspeciesController.php';
     $controller = new EspeciesController();
@@ -32,7 +50,7 @@ if (preg_match('#^/api/especies/?$#', $path)) {
     exit;
 }
 
-// ✅ RUTA para especies por región
+// 3. RUTA para especies por región
 if (preg_match('#^/api/especies/region/([^/]+)$#', $path, $matches)) {
     if ($request_method === 'GET') {
         require_once __DIR__ . '/../src/Controllers/EspeciesController.php';
@@ -42,7 +60,7 @@ if (preg_match('#^/api/especies/region/([^/]+)$#', $path, $matches)) {
     }
 }
 
-// ✅ RUTA para especie específica
+// 4. RUTA para especie específica
 if (preg_match('#^/api/especies/([^/]+)$#', $path, $matches)) {
     require_once __DIR__ . '/../src/Controllers/EspeciesController.php';
     $controller = new EspeciesController();
@@ -50,23 +68,15 @@ if (preg_match('#^/api/especies/([^/]+)$#', $path, $matches)) {
     exit;
 }
 
-// ✅ RUTAS para usuarios
-if (preg_match('#^/api/usuarios/?$#', $path)) {
-    require_once __DIR__ . '/../src/Controllers/UsuariosController.php';
-    $controller = new UsuariosController();
-    $controller->handleRequest($request_method);
+// Health check
+if ($path === '/api/health') {
+    require_once __DIR__ . '/../src/Controllers/HealthController.php';
+    $controller = new HealthController();
+    $controller->check();
     exit;
 }
 
-// ✅ RUTA para usuario específico (opcional)
-if (preg_match('#^/api/usuarios/([^/]+)$#', $path, $matches)) {
-    require_once __DIR__ . '/../src/Controllers/UsuariosController.php';
-    $controller = new UsuariosController();
-    $controller->handleRequest($request_method, $matches[1]);
-    exit;
-}
-
-// Dashboard
+// 6. Dashboard
 if ($path === '/api/dashboard') {
     require_once __DIR__ . '/../src/Controllers/DashboardController.php';
     $controller = new DashboardController();
@@ -80,5 +90,6 @@ echo json_encode([
     'success' => false,
     'message' => 'Endpoint no encontrado',
     'path' => $path,
-    'method' => $request_method
+    'method' => $request_method,
+    'timestamp' => date('Y-m-d H:i:s')
 ], JSON_PRETTY_PRINT);

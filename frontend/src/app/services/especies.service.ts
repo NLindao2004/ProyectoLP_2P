@@ -232,17 +232,17 @@ export class EspeciesService {
 
   // ✅ AGREGAR: Método para convertir comentarios del backend
   private convertirComentariosBackendAFrontend(comentariosBackend: any[]): Comentario[] {
-    if (!Array.isArray(comentariosBackend)) {
-      return [];
-    }
-
-    return comentariosBackend.map((comentario: any) => ({
-      id: comentario.id || comentario._id || '',
-      texto: comentario.texto || comentario.text || '',
-      autor: comentario.autor || comentario.author || 'Anónimo',
-      fecha: comentario.fecha || comentario.created_at || new Date().toISOString()
-    }));
+  if (!Array.isArray(comentariosBackend)) {
+    return [];
   }
+
+  return comentariosBackend.map((comentario: any) => ({
+    id: comentario.id || comentario._id || '',
+    texto: comentario.texto || comentario.text || '',
+    autor: comentario.autor || comentario.author || 'Anónimo',
+    fecha: comentario.fecha || comentario.created_at || new Date().toISOString()
+  }));
+}
 
   // ✅ MÉTODOS CRUD COMPLETOS
   createEspecie(especieData: Partial<Especie>): Observable<Especie> {
@@ -487,32 +487,42 @@ export class EspeciesService {
       })
     );
   }
+agregarComentario(especieId: string, comentario: Comentario): Observable<Especie> {
+  const url = `${this.API_URL}/${especieId}/comentarios`;
+  
+  return this.http.post<any>(url, comentario, {
+    headers: new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    })
+  }).pipe(
+    map(response => {
+      if (response.success) {
+        return this.convertirBackendAFrontend(response.data);
+      }
+      throw new Error(response.message || 'Error al agregar comentario');
+    }),
+    catchError(this.handleError)
+  );
+}
 
-  // ✅ AGREGAR MÉTODO para comentarios (que tu compañero necesita)
-  agregarComentario(especieId: string, comentario: Comentario): Observable<Especie> {
-    this.loadingSubject.next(true);
+getEspecieById2(id: string): Observable<Especie> {
+  return this.http.get<any>(`${this.API_URL}/${id}`).pipe(
+    map(response => {
+      console.log('Respuesta del backend:', response); // Para debug
+      if (response.success && response.data) {
+        const especie = this.convertirBackendAFrontend(response.data);
+        // Asegurarse que los comentarios existan
+        especie.comentarios = especie.comentarios || [];
+        console.log('Especie convertida:', especie); // Para debug
+        return especie;
+      }
+      throw new Error(response.message || 'Especie no encontrada');
+    }),
+    catchError(this.handleError)
+  );
+}
 
-    return this.http.post<any>(`${this.API_URL}/${especieId}/comentarios`, comentario, this.httpOptions)
-      .pipe(
-        map(response => {
-          if (response.success) {
-            return this.convertirBackendAFrontend(response.data);
-          } else {
-            throw new Error(response.message || 'Error al agregar comentario');
-          }
-        }),
-        tap(especieActualizada => {
-          const especiesActuales = this.especiesSubject.value;
-          const index = especiesActuales.findIndex(e => e.id === especieId);
-          if (index >= 0) {
-            especiesActuales[index] = especieActualizada;
-            this.especiesSubject.next([...especiesActuales]);
-          }
-          this.loadingSubject.next(false);
-        }),
-        catchError(this.handleError.bind(this))
-      );
-  }
 
   // ✅ MANEJO DE ERRORES
   private handleError(error: HttpErrorResponse): Observable<never> {

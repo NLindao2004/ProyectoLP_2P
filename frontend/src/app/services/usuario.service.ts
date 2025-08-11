@@ -20,5 +20,9 @@ export class UsuarioService {
     return res.json();
   }
 
-  // Puedes agregar más métodos: crear, actualizar, etc.
+  getUid(): string | null {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    return user ? user.uid : null;
+  }
 }

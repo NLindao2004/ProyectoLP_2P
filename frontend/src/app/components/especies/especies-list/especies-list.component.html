@@ -111,12 +111,14 @@
       <div class="card-actions">
         <button 
           class="btn-edit" 
+          *ngIf="usuarioUid && especie.registrado_por === usuarioUid"
           (click)="onEditEspecie(especie); $event.stopPropagation()"
           title="Editar especie">
           Editar
         </button>
         <button 
           class="btn-delete" 
+          *ngIf="usuarioUid && especie.registrado_por === usuarioUid"
           (click)="deleteEspecie(especie); $event.stopPropagation()"
           title="Eliminar especie">
           Eliminar

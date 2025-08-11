@@ -9,6 +9,7 @@ import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Router } from '@angular/router';
+import { UsuarioService } from '../../../services/usuario.service'; // Agrega este import
 
 @Component({
   selector: 'app-especies-list',
@@ -42,15 +43,17 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
   caracteresRestantes: { [key: string]: number } = {};
   cargandoComentario: { [key: string]: boolean } = {};
   comentarios: { [key: string]: any[] } = {};
-
+  usuarioUid: string | null = null;
   private destroy$ = new Subject<void>();
 
   constructor(
     private especiesService: EspeciesService,
-    private router: Router
+    private router: Router,
+    private usuarioService: UsuarioService 
   ) {}
 
   ngOnInit(): void {
+    this.usuarioUid = this.usuarioService.getUid(); // Obtén el UID al iniciar
     this.loadData();
   }
 

@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { map, catchError, tap } from 'rxjs/operators';
 import { Especie, Comentario, ImagenEspecie } from '../models/especies.model'; // ✅ Agregar ImagenEspecie
+import { UsuarioService } from './usuario.service'; // Agrega este import
 
 export interface ApiResponse {
   success: boolean;
@@ -55,7 +56,7 @@ export class EspeciesService {
     })
   };
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private usuarioService: UsuarioService) {
     // ✅ REACTIVAR la carga inicial para el catálogo
     this.initializeData();
   }
@@ -292,6 +293,7 @@ private generateId(): string {
     this.loadingSubject.next(true);
 
     const backendData = this.convertirFrontendABackend(especieData as Especie);
+    backendData.registrado_por = this.usuarioService.getUid();
 
     return this.http.post<any>(this.API_URL, backendData, this.httpOptions)
       .pipe(
@@ -313,7 +315,10 @@ private generateId(): string {
 
   createEspecieWithImages(formData: FormData): Observable<Especie> {
     this.loadingSubject.next(true);
-
+    const uid = this.usuarioService.getUid();
+    if (uid) {
+      formData.append('registrado_por', uid);
+    }
     return this.http.post<any>(this.API_URL, formData, this.httpOptionsFormData)
       .pipe(
         map(response => {
@@ -336,7 +341,7 @@ private generateId(): string {
     this.loadingSubject.next(true);
 
     const backendData = this.convertirFrontendABackend(especieData as Especie);
-
+    backendData.uid = this.usuarioService.getUid();
     return this.http.put<any>(`${this.API_URL}/${id}`, backendData, this.httpOptions)
       .pipe(
         map(response => {
@@ -387,8 +392,8 @@ private generateId(): string {
 
   deleteEspecie(id: string): Observable<void> {
     this.loadingSubject.next(true);
-
-    return this.http.delete<any>(`${this.API_URL}/${id}`, this.httpOptions)
+    const uid = this.usuarioService.getUid();
+    return this.http.delete<any>(`${this.API_URL}/${id}?uid=${uid}`, this.httpOptions)
       .pipe(
         map(response => {
           if (!response.success) {

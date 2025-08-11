@@ -291,6 +291,16 @@ class EspeciesController extends BaseController {
         $especieRef = $this->database->getReference('especies/' . $id);
         $snapshot = $especieRef->getSnapshot();
 
+        $data = $this->getRequestData();
+        $especieActual = $snapshot->getValue();
+
+        // Validar que el usuario autenticado es el creador
+        $uid = $data['uid'] ?? null;
+        if (!$uid || $especieActual['registrado_por'] !== $uid) {
+            $this->sendError('No tienes permiso para editar esta especie', 403);
+            return;
+        }
+
         if (!$snapshot->exists()) {
             $this->sendError('Especie no encontrada', 404);
             return;
@@ -329,6 +339,15 @@ class EspeciesController extends BaseController {
         $especieRef = $this->database->getReference('especies/' . $id);
         $snapshot = $especieRef->getSnapshot();
 
+        $data = $this->getRequestData();
+        $especieActual = $snapshot->getValue();
+
+        // Validar que el usuario autenticado es el creador
+        $uid = $data['uid'] ?? null;
+        if (!$uid || $especieActual['registrado_por'] !== $uid) {
+            $this->sendError('No tienes permiso para editar esta especie', 403);
+            return;
+        }
         if (!$snapshot->exists()) {
             $this->sendError('Especie no encontrada', 404);
             return;
@@ -393,6 +412,16 @@ class EspeciesController extends BaseController {
     private function deleteEspecie($id) {
         $especieRef = $this->database->getReference('especies/' . $id);
         $snapshot = $especieRef->getSnapshot();
+
+        $especieData = $snapshot->getValue();
+
+        // Obtener UID del usuario autenticado
+        $data = $this->getRequestData();
+        $uid = $data['uid'] ?? null;
+        if (!$uid || $especieData['registrado_por'] !== $uid) {
+            $this->sendError('No tienes permiso para eliminar esta especie', 403);
+            return;
+        }
 
         if (!$snapshot->exists()) {
             $this->sendError('Especie no encontrada', 404);

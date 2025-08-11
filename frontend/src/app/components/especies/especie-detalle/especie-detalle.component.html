@@ -34,18 +34,7 @@
   <div class="detalle-comentarios">
     <h3>Comentarios ({{especie.comentarios?.length || 0}})</h3>
     
-    <!-- Lista de comentarios -->
-    <div class="comentarios-lista" *ngIf="especie.comentarios && especie.comentarios.length > 0">
-      <div class="comentario-item" *ngFor="let comentario of especie.comentarios">
-        <div class="comentario-header">
-          <span class="comentario-autor">{{ comentario.autor || 'Anónimo' }}</span>
-          <span class="comentario-fecha">{{ comentario.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
-        </div>
-        <div class="comentario-texto">{{ comentario.texto }}</div>
-      </div>
-    </div>
-    
-    <!-- Formulario para agregar comentarios (reemplaza el mensaje sin comentarios) -->
+    <!-- Formulario para agregar comentarios -->
     <div class="comentario-form-container">
       <div class="comentario-form">
         <h4>Agregar comentario</h4>
@@ -68,6 +57,18 @@
             {{ errorComentario }}
           </div>
         </form>
+      </div>
+    </div>
+    <br>
+    
+    <!-- Lista de comentarios -->
+    <div class="comentarios-lista" *ngIf="especie.comentarios && especie.comentarios.length > 0">
+      <div class="comentario-item" *ngFor="let comentario of especie.comentarios">
+        <div class="comentario-header">
+          <span class="comentario-autor">{{ comentario.autor || 'Anónimo' }}</span>
+          <span class="comentario-fecha">{{ comentario.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        <div class="comentario-texto">{{ comentario.texto }}</div>
       </div>
     </div>
   </div>

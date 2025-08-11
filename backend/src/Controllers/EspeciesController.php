@@ -131,17 +131,50 @@ class EspeciesController extends BaseController {
 
     // ✅ MÉTODO ACTUALIZADO para incluir imágenes
     private function getEspecie($id) {
+    try {
         $especieRef = $this->database->getReference('especies/' . $id);
         $snapshot = $especieRef->getSnapshot();
 
-        if ($snapshot->exists()) {
-            $data = $snapshot->getValue();
-            $response = $this->formatEspecieForFrontend($data, $id);
-            $this->sendResponse(true, $response, 'Especie encontrada');
-        } else {
+        if (!$snapshot->exists()) {
             $this->sendError('Especie no encontrada', 404);
+            return;
         }
+
+        $data = $snapshot->getValue();
+        
+        // Obtener comentarios con consulta optimizada
+        $comentariosQuery = $this->database->getReference('comentarios')
+            ->orderByChild('especie_id')
+            ->equalTo($id);
+            
+        $comentariosData = $comentariosQuery->getValue();
+        $comentarios = [];
+
+        if (is_array($comentariosData)) {
+            foreach ($comentariosData as $key => $value) {
+                $comentarios[] = [
+                    'id' => $key,
+                    'texto' => $value['texto'] ?? '',
+                    'autor' => $value['autor'] ?? 'Anónimo',
+                    'fecha' => $value['fecha'] ?? date('Y-m-d H:i:s')
+                ];
+            }
+        }
+
+        // Ordenar por fecha descendente
+        usort($comentarios, function($a, $b) {
+            return strtotime($b['fecha']) - strtotime($a['fecha']);
+        });
+
+        $data['comentarios'] = $comentarios;
+        
+        $this->sendResponse(true, $this->formatEspecieForFrontend($data, $id), 'Especie encontrada');
+        
+    } catch (Exception $e) {
+        error_log("Error en getEspecie: " . $e->getMessage());
+        $this->sendError('Error al obtener especie', 500);
     }
+}
 
     // ✅ MÉTODO ORIGINAL sin cambios (para compatibilidad)
     private function createEspecie() {
@@ -531,110 +564,139 @@ class EspeciesController extends BaseController {
     try {
         error_log("\n==== INICIO AGREGAR COMENTARIO ====");
         
-        // 1. Leer el input RAW
+        // 1. Leer y validar input
         $jsonInput = file_get_contents('php://input');
-        error_log("Input RAW: " . $jsonInput);
-        
-        // 2. Validar que no esté vacío
         if (empty($jsonInput)) {
-            error_log("Error: Cuerpo de la petición vacío");
             $this->sendError('El cuerpo de la petición está vacío', 400);
             return;
         }
 
-        // 3. Decodificar JSON manualmente
         $data = json_decode($jsonInput, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
-            error_log("Error decodificando JSON: " . json_last_error_msg());
-            error_log("JSON recibido: " . $jsonInput);
-            $this->sendError('Formato JSON inválido. Asegúrese de usar comillas dobles y formato válido', 400);
+            $this->sendError('Formato JSON inválido', 400);
             return;
         }
-        error_log("Datos decodificados: " . print_r($data, true));
 
-        // 4. Validar campos requeridos
-        if (!isset($data['texto']) || trim($data['texto']) === '') {
-            error_log("Error: Campo 'texto' vacío o ausente");
+        if (!isset($data['texto']) || empty(trim($data['texto']))) {
             $this->sendError('El texto del comentario es requerido', 400);
             return;
         }
 
-        // 5. Obtener referencia a Firebase
+        // 2. Verificar existencia de especie
         $especieRef = $this->database->getReference('especies/' . $especieId);
-        $snapshot = $especieRef->getSnapshot();
-        
-        if (!$snapshot->exists()) {
-            error_log("Error: No existe especie con ID $especieId");
+        if (!$especieRef->getSnapshot()->exists()) {
             $this->sendError('Especie no encontrada', 404);
             return;
         }
 
-        // 6. Preparar nuevo comentario
+        // 3. Preparar y sanitizar datos del comentario
         $nuevoComentario = [
-            'id' => uniqid('com_', true),
             'texto' => $this->sanitizeInput($data['texto']),
             'autor' => $this->sanitizeInput($data['autor'] ?? 'Anónimo'),
-            'fecha' => date('Y-m-d H:i:s')
+            'fecha' => date('Y-m-d H:i:s'),
+            'especie_id' => $especieId,
+            'estado' => 'activo' // Campo adicional para moderación
         ];
-        error_log("Nuevo comentario preparado: " . print_r($nuevoComentario, true));
 
-        // 7. Actualizar Firebase (merge con comentarios existentes)
-        $comentariosActuales = $snapshot->getValue()['comentarios'] ?? [];
-        $comentariosActualizados = array_merge($comentariosActuales, [$nuevoComentario]);
+        // 4. Guardar en la base de datos
+        $comentariosRef = $this->database->getReference('comentarios');
+        $nuevoRef = $comentariosRef->push($nuevoComentario);
+
+        // 5. Obtener todos los comentarios de la especie (solo activos)
+        $comentariosQuery = $this->database->getReference('comentarios')
+            ->orderByChild('especie_id')
+            ->equalTo($especieId);
+            
+        $comentariosData = $comentariosQuery->getValue();
+        $comentarios = [];
         
-        $updates = [
-            'comentarios' => $comentariosActualizados,
-            'fecha_actualizacion' => date('Y-m-d H:i:s')
-        ];
-        
-        $especieRef->update($updates);
-        error_log("Firebase actualizado exitosamente");
+        if (is_array($comentariosData)) {
+            foreach ($comentariosData as $key => $value) {
+                // Filtrar solo comentarios activos
+                if (($value['estado'] ?? 'activo') === 'activo') {
+                    $comentarios[] = [
+                        'id' => $key,
+                        'texto' => $value['texto'] ?? '',
+                        'autor' => $value['autor'] ?? 'Anónimo',
+                        'fecha' => $value['fecha'] ?? date('Y-m-d H:i:s')
+                    ];
+                }
+            }
+        }
 
-        // 8. Preparar respuesta
-        $response = [
-            'success' => true,
-            'message' => 'Comentario agregado exitosamente',
-            'data' => [
-                'especieId' => $especieId,
-                'comentario' => $nuevoComentario,
-                'totalComentarios' => count($comentariosActualizados)
-            ],
-            'timestamp' => date('Y-m-d H:i:s')
-        ];
+        // 6. Ordenar comentarios por fecha (más nuevos primero)
+        usort($comentarios, function($a, $b) {
+            return strtotime($b['fecha']) - strtotime($a['fecha']);
+        });
 
-        http_response_code(200);
-        header('Content-Type: application/json');
-        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+        // 7. Actualizar datos de la especie
+        $especieData = $especieRef->getSnapshot()->getValue();
+        $especieData['comentarios'] = $comentarios;
+        $especieData['fecha_actualizacion'] = date('Y-m-d H:i:s');
+        $especieData['total_comentarios'] = count($comentarios);
+
+        // 8. Responder con la especie actualizada
+        $this->sendResponse(
+            true, 
+            $this->formatEspecieForFrontend($especieData, $especieId), 
+            'Comentario agregado exitosamente',
+            201
+        );
 
     } catch (Exception $e) {
-        error_log("Error crítico en agregarComentario: " . $e->getMessage());
-        error_log("Stack trace: " . $e->getTraceAsString());
-        $this->sendError('Error interno del servidor: ' . $e->getMessage(), 500);
+        error_log("Error en agregarComentario: " . $e->getMessage());
+        $this->sendError('Error interno del servidor', 500);
     }
 }
 
+// Función auxiliar para sanitizar input
+
+
+// Función auxiliar para enviar respuestas de error
+protected function sendError($message, $code = 400) {
+    http_response_code($code);
+    echo json_encode([
+        'success' => false,
+        'message' => $message
+    ]);
+}
+
+// Función auxiliar para enviar respuestas exitosas
+protected function sendResponse($success, $data = null, $message = '', $code = 200) {
+    http_response_code($code);
+    echo json_encode([
+        'success' => $success,
+        'data' => $data,
+        'message' => $message
+    ]);
+}
+// Función auxiliar para sanitizar input
+protected function sanitizeInput($input) {
+    return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
+}
 
     // ✅ NUEVO: Formatear datos para el frontend
     private function formatEspecieForFrontend($especieData, $id) {
-        return [
-            'id' => $id,
-            'nombre_cientifico' => $especieData['nombre_cientifico'] ?? '',
-            'nombre_vulgar' => $especieData['nombre_vulgar'] ?? '',
-            'familia' => $especieData['familia'] ?? '',
-            'estado_conservacion' => $especieData['estado_conservacion'] ?? 'No evaluado',
-            'habitat' => $especieData['habitat'] ?? '',
-            'descripcion' => $especieData['descripcion'] ?? '',
-            'coordenadas' => [
-                'latitud' => floatval($especieData['coordenadas']['latitud'] ?? 0),
-                'longitud' => floatval($especieData['coordenadas']['longitud'] ?? 0)
-            ],
-            'fecha_registro' => $especieData['fecha_registro'] ?? '',
-            'fecha_actualizacion' => $especieData['fecha_actualizacion'] ?? '',
-            'registrado_por' => $especieData['registrado_por'] ?? 'sistema',
-            'activo' => $especieData['activo'] ?? true,
-            'imagenes' => $especieData['imagenes'] ?? []
-        ];
-    }
+    return [
+        'id' => $id,
+        'nombre_cientifico' => $especieData['nombre_cientifico'] ?? '',
+        'nombre_vulgar' => $especieData['nombre_vulgar'] ?? '',
+        'familia' => $especieData['familia'] ?? '',
+        'estado_conservacion' => $especieData['estado_conservacion'] ?? 'No evaluado',
+        'habitat' => $especieData['habitat'] ?? '',
+        'descripcion' => $especieData['descripcion'] ?? '',
+        'coordenadas' => [
+            'latitud' => floatval($especieData['coordenadas']['latitud'] ?? 0),
+            'longitud' => floatval($especieData['coordenadas']['longitud'] ?? 0)
+        ],
+        'fecha_registro' => $especieData['fecha_registro'] ?? '',
+        'fecha_actualizacion' => $especieData['fecha_actualizacion'] ?? '',
+        'registrado_por' => $especieData['registrado_por'] ?? 'sistema',
+        'activo' => $especieData['activo'] ?? true,
+        'imagenes' => $especieData['imagenes'] ?? [],
+        'comentarios' => $especieData['comentarios'] ?? [] // Asegurar que siempre haya array
+    ];
+}
 
     // ✅ AGREGAR: Método fallback cuando Storage no funciona
     private function createEspecieFallback() {

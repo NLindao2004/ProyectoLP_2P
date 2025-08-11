@@ -22,6 +22,7 @@ export class EspecieDetalleComponent implements OnInit {
   };
   enviandoComentario = false;
   errorComentario: string | null = null;
+  cargando = true;
 
   constructor(
     private route: ActivatedRoute,
@@ -36,28 +37,43 @@ export class EspecieDetalleComponent implements OnInit {
   cargarEspecie(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
-      this.especiesService.getEspecieById(id).subscribe({
+      this.cargando = true;
+      
+      this.especiesService.getEspecieById2(id).subscribe({
         next: (especie) => {
-          // Asegurar que los comentarios existan y estén inicializados
-          especie.comentarios = especie.comentarios || [];
           this.especie = especie;
+          // Asegurarse de que comentarios existe y está ordenado
+          this.especie.comentarios = especie.comentarios || [];
           this.ordenarComentarios();
-          console.log('Especie cargada:', this.especie); // Debug
+          this.cargando = false;
         },
         error: (error) => {
           console.error('Error cargando especie:', error);
+          this.cargando = false;
         }
       });
     }
   }
 
   ordenarComentarios(): void {
-    if (this.especie.comentarios) {
-      this.especie.comentarios.sort((a, b) => 
-        new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
-      );
-    }
+  // Asegurarnos de que comentarios es un array antes de ordenar
+  if (!this.especie?.comentarios) {
+    this.especie.comentarios = []; // Inicializar como array vacío si es null/undefined
+    return;
   }
+
+  this.especie.comentarios.sort((a, b) => {
+    try {
+      // Convertir ambas fechas a timestamps para comparar
+      const fechaA = new Date(a.fecha).getTime();
+      const fechaB = new Date(b.fecha).getTime();
+      return fechaB - fechaA; // Orden descendente (más reciente primero)
+    } catch (error) {
+      console.error('Error al ordenar comentarios:', error);
+      return 0; // Si hay error en las fechas, mantener el orden actual
+    }
+  });
+}
 
   goBack(): void {
     this.location.back();
@@ -71,28 +87,22 @@ export class EspecieDetalleComponent implements OnInit {
     this.enviandoComentario = true;
     this.errorComentario = null;
 
-    // Crear el objeto de comentario con el formato exacto que espera el backend
     const comentarioData: Comentario = {
       texto: this.nuevoComentario.texto.trim(),
       autor: this.nuevoComentario.autor?.trim() || 'Anónimo',
-      fecha: new Date().toISOString() // Añadir la fecha actual
+      fecha: new Date().toISOString()
     };
 
     this.especiesService.agregarComentario(this.especie.id, comentarioData).subscribe({
       next: (especieActualizada) => {
-        // Actualizar la lista de comentarios
-        this.especie = {
-          ...this.especie,
-          comentarios: [...(this.especie.comentarios || []), comentarioData]
-        };
-        
-        this.nuevoComentario = { texto: '', autor: '', fecha: '' };
+        this.especie = especieActualizada;
         this.ordenarComentarios();
+        this.nuevoComentario = { texto: '', autor: '', fecha: '' };
         this.enviandoComentario = false;
       },
       error: (error) => {
-        console.error('Error al agregar comentario:', error);
-        this.errorComentario = 'Error al agregar el comentario. Por favor, inténtalo de nuevo.';
+        console.error('Error completo:', error);
+        this.errorComentario = error.message || 'Error al agregar el comentario. Por favor, inténtalo de nuevo.';
         this.enviandoComentario = false;
       }
     });

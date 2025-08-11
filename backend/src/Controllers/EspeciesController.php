@@ -525,6 +525,95 @@ class EspeciesController extends BaseController {
         }
     }
 
+
+    // Método para agregar comentario
+   public function agregarComentario($especieId) {
+    try {
+        error_log("\n==== INICIO AGREGAR COMENTARIO ====");
+        
+        // 1. Leer el input RAW
+        $jsonInput = file_get_contents('php://input');
+        error_log("Input RAW: " . $jsonInput);
+        
+        // 2. Validar que no esté vacío
+        if (empty($jsonInput)) {
+            error_log("Error: Cuerpo de la petición vacío");
+            $this->sendError('El cuerpo de la petición está vacío', 400);
+            return;
+        }
+
+        // 3. Decodificar JSON manualmente
+        $data = json_decode($jsonInput, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            error_log("Error decodificando JSON: " . json_last_error_msg());
+            error_log("JSON recibido: " . $jsonInput);
+            $this->sendError('Formato JSON inválido. Asegúrese de usar comillas dobles y formato válido', 400);
+            return;
+        }
+        error_log("Datos decodificados: " . print_r($data, true));
+
+        // 4. Validar campos requeridos
+        if (!isset($data['texto']) || trim($data['texto']) === '') {
+            error_log("Error: Campo 'texto' vacío o ausente");
+            $this->sendError('El texto del comentario es requerido', 400);
+            return;
+        }
+
+        // 5. Obtener referencia a Firebase
+        $especieRef = $this->database->getReference('especies/' . $especieId);
+        $snapshot = $especieRef->getSnapshot();
+        
+        if (!$snapshot->exists()) {
+            error_log("Error: No existe especie con ID $especieId");
+            $this->sendError('Especie no encontrada', 404);
+            return;
+        }
+
+        // 6. Preparar nuevo comentario
+        $nuevoComentario = [
+            'id' => uniqid('com_', true),
+            'texto' => $this->sanitizeInput($data['texto']),
+            'autor' => $this->sanitizeInput($data['autor'] ?? 'Anónimo'),
+            'fecha' => date('Y-m-d H:i:s')
+        ];
+        error_log("Nuevo comentario preparado: " . print_r($nuevoComentario, true));
+
+        // 7. Actualizar Firebase (merge con comentarios existentes)
+        $comentariosActuales = $snapshot->getValue()['comentarios'] ?? [];
+        $comentariosActualizados = array_merge($comentariosActuales, [$nuevoComentario]);
+        
+        $updates = [
+            'comentarios' => $comentariosActualizados,
+            'fecha_actualizacion' => date('Y-m-d H:i:s')
+        ];
+        
+        $especieRef->update($updates);
+        error_log("Firebase actualizado exitosamente");
+
+        // 8. Preparar respuesta
+        $response = [
+            'success' => true,
+            'message' => 'Comentario agregado exitosamente',
+            'data' => [
+                'especieId' => $especieId,
+                'comentario' => $nuevoComentario,
+                'totalComentarios' => count($comentariosActualizados)
+            ],
+            'timestamp' => date('Y-m-d H:i:s')
+        ];
+
+        http_response_code(200);
+        header('Content-Type: application/json');
+        echo json_encode($response, JSON_UNESCAPED_UNICODE);
+
+    } catch (Exception $e) {
+        error_log("Error crítico en agregarComentario: " . $e->getMessage());
+        error_log("Stack trace: " . $e->getTraceAsString());
+        $this->sendError('Error interno del servidor: ' . $e->getMessage(), 500);
+    }
+}
+
+
     // ✅ NUEVO: Formatear datos para el frontend
     private function formatEspecieForFrontend($especieData, $id) {
         return [

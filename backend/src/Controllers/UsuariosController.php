@@ -16,7 +16,13 @@ class UsuariosController extends BaseController {
                     break;
 
                 case 'POST':
-                    $this->createUsuario();
+                    if (isset($_GET['action']) && $_GET['action'] === 'login') {
+                        $this->loginUsuario();
+                    } elseif (isset($_GET['action']) && $_GET['action'] === 'register') {
+                        $this->registerUsuario();
+                    } else {
+                        $this->createUsuario();
+                    }
                     break;
 
                 case 'PUT':
@@ -52,7 +58,6 @@ class UsuariosController extends BaseController {
         if ($snapshot->exists()) {
             foreach ($snapshot->getValue() as $key => $value) {
                 $value['id'] = $key;
-                // No enviar información sensible
                 unset($value['password']);
                 $result[] = $value;
             }
@@ -68,7 +73,6 @@ class UsuariosController extends BaseController {
         if ($snapshot->exists()) {
             $data = $snapshot->getValue();
             $data['id'] = $id;
-            // No enviar información sensible
             unset($data['password']);
             $this->sendResponse(true, $data, 'Usuario encontrado');
         } else {
@@ -76,10 +80,105 @@ class UsuariosController extends BaseController {
         }
     }
 
+    // REGISTRO DE USUARIO EN FIREBASE AUTH Y BASE DE DATOS
+    private function registerUsuario() {
+        try {
+            $data = $this->getRequestData();
+            error_log('Datos recibidos en registerUsuario: ' . json_encode($data));
+
+            $required = ['nombre', 'email', 'rol', 'uid'];
+            foreach ($required as $field) {
+                if (empty($data[$field])) {
+                    error_log("Falta campo requerido: $field");
+                    $this->sendError("Campo requerido: $field", 400);
+                    return;
+                }
+            }
+
+            // Verifica si ya existe en la base de datos
+            $usuariosRef = $this->database->getReference('usuarios');
+            $usuarioRef = $usuariosRef->getChild($data['uid']);
+            if ($usuarioRef->getSnapshot()->exists()) {
+                error_log('El usuario ya está registrado en la base de datos');
+                $this->sendError('El usuario ya está registrado', 400);
+                return;
+            }
+
+            // Guarda los datos adicionales en la base de datos usando el UID como clave
+            $nuevoUsuario = [
+                'nombre' => $data['nombre'],
+                'email' => $data['email'],
+                'rol' => $data['rol'],
+                'institucion' => $data['institucion'] ?? '',
+                'especialidad' => $data['especialidad'] ?? '',
+                'telefono' => $data['telefono'] ?? '',
+                'fecha_registro' => date('Y-m-d H:i:s'),
+                'activo' => true,
+                'ultimo_acceso' => null,
+                'uid' => $data['uid']
+            ];
+            $usuarioRef->set($nuevoUsuario);
+
+            $nuevoUsuario['id'] = $data['uid'];
+            error_log('Usuario guardado en base de datos con ID: ' . $nuevoUsuario['id']);
+            $this->sendResponse(true, $nuevoUsuario, 'Usuario registrado exitosamente');
+        } catch (\Throwable $e) {
+            error_log('Error inesperado en registerUsuario: ' . $e->getMessage());
+            $this->sendError('Error inesperado: ' . $e->getMessage(), 500);
+        }
+    }
+
+    // LOGIN: SOLO VERIFICACIÓN DE TOKEN, EL LOGIN REAL SE HACE EN EL FRONTEND
+    private function loginUsuario() {
+        $data = $this->getRequestData();
+
+        if (empty($data['idToken'])) {
+            $this->sendError('Token de usuario requerido', 400);
+            return;
+        }
+
+        try {
+            $auth = $this->auth;
+            $verifiedIdToken = $auth->verifyIdToken($data['idToken']);
+            $uid = $verifiedIdToken->claims()->get('sub');
+            $email = $verifiedIdToken->claims()->get('email');
+            $nombre = $verifiedIdToken->claims()->get('name') ?? '';
+
+            // Buscar usuario en la base de datos por uid
+            $usuariosRef = $this->database->getReference('usuarios');
+            $usuarioRef = $usuariosRef->getChild($uid);
+            $snapshot = $usuarioRef->getSnapshot();
+
+            if ($snapshot->exists()) {
+                $usuario = $snapshot->getValue();
+                $this->sendResponse(true, $usuario, 'Login exitoso');
+            } else {
+                // Registrar automáticamente al usuario si no existe
+                $nuevoUsuario = [
+                    'nombre' => $nombre,
+                    'email' => $email,
+                    'rol' => 'usuario',
+                    'institucion' => '',
+                    'especialidad' => '',
+                    'telefono' => '',
+                    'fecha_registro' => date('Y-m-d H:i:s'),
+                    'activo' => true,
+                    'ultimo_acceso' => null,
+                    'uid' => $uid
+                ];
+                $usuarioRef->set($nuevoUsuario);
+                $nuevoUsuario['id'] = $uid;
+                $this->sendResponse(true, $nuevoUsuario, 'Usuario registrado y login exitoso');
+            }
+        } catch (\Throwable $e) {
+            $this->sendError('Token inválido: ' . $e->getMessage(), 401);
+        }
+    }
+
+    // CREAR USUARIO SOLO EN BASE DE DATOS (NO RECOMENDADO PARA AUTENTICACIÓN)
     private function createUsuario() {
         $data = $this->getRequestData();
         
-        // Validar datos requeridos
         $required = ['nombre', 'email', 'rol'];
         foreach ($required as $field) {
             if (empty($data[$field])) {
@@ -88,7 +187,6 @@ class UsuariosController extends BaseController {
             }
         }
 
-        // Validar email único
         if ($this->emailExists($data['email'])) {
             $this->sendError('El email ya está registrado', 400);
             return;
@@ -97,7 +195,7 @@ class UsuariosController extends BaseController {
         $nuevoUsuario = [
             'nombre' => $data['nombre'],
             'email' => $data['email'],
-            'rol' => $data['rol'], // admin, investigador, usuario
+            'rol' => $data['rol'],
             'institucion' => $data['institucion'] ?? '',
             'especialidad' => $data['especialidad'] ?? '',
             'telefono' => $data['telefono'] ?? '',
@@ -123,7 +221,6 @@ class UsuariosController extends BaseController {
 
         $data = $this->getRequestData();
         
-        // Validar email único si se está cambiando
         if (!empty($data['email'])) {
             $currentUser = $usuarioRef->getSnapshot()->getValue();
             if ($data['email'] !== $currentUser['email'] && $this->emailExists($data['email'])) {

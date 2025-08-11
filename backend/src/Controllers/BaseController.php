@@ -6,6 +6,7 @@ class BaseController {
     protected $database;
     protected $firebase;
     protected $storage;
+    protected $auth;
 
     public function __construct() {
         // ✅ AGREGAR: Habilitar logs de errores
@@ -57,34 +58,8 @@ class BaseController {
 
                 $this->database = $factory->createDatabase();
                 $this->firebase = $factory;
+                $this->auth = $factory->createAuth(); 
                 $this->storage = $factory->createStorage();
-
-                // ✅ VERIFICACIÓN CORREGIDA - Usar la API correcta
-                try {
-                    $bucket = $this->storage->getBucket();
-                    error_log("✅ Storage inicializado correctamente con bucket: " . $bucket->name());
-                    
-                    // ✅ CORRECCIÓN: Test de escritura usando bucket.upload(), NO object.upload()
-                    $testContent = 'test-connection-' . time();
-                    $testPath = 'test/connection-test-' . time() . '.txt';
-                    
-                    $object = $bucket->upload($testContent, [
-                        'name' => $testPath,
-                        'metadata' => [
-                            'contentType' => 'text/plain'
-                        ]
-                    ]);
-                    
-                    error_log("✅ Test de escritura exitoso: " . $testPath);
-                    
-                    // Limpiar archivo de test
-                    $object->delete();
-                    
-                } catch (Exception $e) {
-                    error_log("❌ Error en Storage (no crítico): " . $e->getMessage());
-                    // ✅ NO fallar si Storage no funciona - solo loggear
-                    error_log("⚠️ Storage no disponible, funcionará con fallback");
-                }
 
             } finally {
                 // ✅ RESTAURAR error reporting
@@ -126,7 +101,6 @@ class BaseController {
     }
 
     protected function sendError($message, $httpCode = 400) {
-        error_log("API Error ($httpCode): $message");
         $this->sendResponse(false, null, $message, $httpCode);
     }
 

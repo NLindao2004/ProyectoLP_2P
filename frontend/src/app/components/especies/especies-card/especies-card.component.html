@@ -1,14 +1,14 @@
-<div class="especie-card" 
+<div class="especie-card"
      [class.selected]="isSelected"
      [class.highlighted]="isHighlighted"
      (click)="onCardClick()">
-  
+
   <!-- Header con nombre científico -->
   <div class="card-header">
     <h3 class="nombre-cientifico">{{ especie.nombre_cientifico }}</h3>
     <span class="familia-badge">{{ especie.familia }}</span>
   </div>
-  
+
   <!-- Imagen placeholder -->
   <div class="card-image">
     <div class="image-placeholder">
@@ -16,70 +16,70 @@
       <small>Imagen no disponible</small>
     </div>
   </div>
-  
+
   <!-- Contenido principal -->
   <div class="card-content">
     <h4 class="nombre-vulgar">{{ especie.nombre_vulgar }}</h4>
-    
+
     <div class="info-row">
-      <span class="info-label">🌍 Hábitat:</span>
+      <span class="info-label"> Hábitat:</span>
       <span class="info-value">{{ especie.habitat }}</span>
     </div>
-    
+
     <div class="info-row">
-      <span class="info-label">🛡️ Estado:</span>
+      <span class="info-label"> Estado:</span>
       <span class="info-value estado-badge" [class]="getEstadoClass()">
         {{ especie.estado_conservacion }}
       </span>
     </div>
-    
+
     <div class="info-row" *ngIf="especie.coordenadas">
-      <span class="info-label">📍 Ubicación:</span>
+      <span class="info-label"> Ubicación:</span>
       <span class="info-value coordinates">
         {{ especie.coordenadas.latitud | number:'1.4-4' }},
         {{ especie.coordenadas.longitud | number:'1.4-4' }}
       </span>
     </div>
-    
+
     <div class="info-row">
-      <span class="info-label">📅 Registrado:</span>
+      <span class="info-label"> Registrado:</span>
       <span class="info-value">{{ especie.fecha_registro | date:'dd/MM/yyyy' }}</span>
     </div>
-    
+
     <p class="descripcion" *ngIf="especie.descripcion">
       {{ getShortDescription() }}
       <span *ngIf="especie.descripcion.length > 100" class="read-more">... leer más</span>
     </p>
   </div>
-  
+
   <!-- Acciones -->
   <div class="card-actions" (click)="$event.stopPropagation()">
-    <button class="action-btn view-btn" 
-            (click)="onView()" 
+    <button class="action-btn view-btn"
+            (click)="onView()"
             title="Ver detalles">
-      
+
     </button>
-    
-    <button class="action-btn edit-btn" 
-            (click)="onEdit()" 
+
+    <button class="action-btn edit-btn"
+            (click)="onEdit()"
             title="Editar especie">
-      
+
     </button>
-    
-    <button class="action-btn map-btn" 
-            (click)="onViewMap()" 
+
+    <button class="action-btn map-btn"
+            (click)="onViewMap()"
             title="Ver en mapa"
             [disabled]="!hasValidCoordinates()">
-      
+
     </button>
-    
-    <button class="action-btn delete-btn" 
-            (click)="onDelete()" 
+
+    <button class="action-btn delete-btn"
+            (click)="onDelete()"
             title="Eliminar especie">
-      
+
     </button>
   </div>
-  
+
   <!-- Indicador de selección -->
   <div class="selection-indicator" *ngIf="isSelected">
     ✓

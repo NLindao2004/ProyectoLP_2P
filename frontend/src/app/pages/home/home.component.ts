@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';  // ⭐ AGREGAR
-import { HeaderComponent } from '../header/header.component'; // Ajusta la ruta si es necesario
+import { Router } from '@angular/router';
+import { HeaderComponent } from '../header/header.component';
 
 @Component({
   selector: 'app-home',
@@ -11,8 +11,8 @@ import { HeaderComponent } from '../header/header.component'; // Ajusta la ruta 
   styleUrls: ['./home.component.scss']
 })
 export class HomeComponent {
-  
-  constructor(private router: Router) {}  // ⭐ INYECTAR ROUTER
+
+  constructor(private router: Router) {}
 
   // Navegación a catálogo
   navigateToCatalogo(): void {

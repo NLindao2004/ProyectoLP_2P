@@ -3,21 +3,21 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { EspeciesService } from '../../../services/especies.service';
-import { 
-  Especie, 
-  EspecieFormData, 
-  EstadoConservacion, 
-  FAMILIAS_COMUNES 
+import {
+  Especie,
+  EspecieFormData,
+  EstadoConservacion,
+  FAMILIAS_COMUNES
 } from '../../../models/especies.model';
 
 // Interfaz para las imágenes seleccionadas
 interface SelectedImage {
-  file?: File;           // Para nuevas imágenes
-  preview: string;       // URL de preview
-  url?: string;          // Para imágenes existentes
-  id?: string;           // ID de imagen existente
-  isExisting?: boolean;  // Flag para identificar imágenes existentes
-  name?: string;         // Nombre del archivo
+  file?: File;
+  preview: string;
+  url?: string;
+  id?: string;
+  isExisting?: boolean;
+  name?: string;
 }
 
 @Component({
@@ -27,6 +27,8 @@ interface SelectedImage {
   templateUrl: './especies-form.component.html',
   styleUrls: ['./especies-form.component.scss']
 })
+
+
 export class EspeciesFormComponent implements OnInit {
   especie: Especie | null = null;
 
@@ -49,7 +51,6 @@ export class EspeciesFormComponent implements OnInit {
   errors: any = {};
   showAdvanced = false;
 
-  // ✅ MODIFICAR: Propiedades para manejo de imágenes existentes
   selectedImages: SelectedImage[] = [];
   existingImages: SelectedImage[] = []; // Imágenes originales de la especie
   imagesToDelete: string[] = []; // IDs de imágenes a eliminar
@@ -60,17 +61,50 @@ export class EspeciesFormComponent implements OnInit {
   // Opciones para selects
   estadosConservacion = Object.values(EstadoConservacion);
   familias = FAMILIAS_COMUNES;
-  
-  // Ubicaciones predefinidas de Ecuador
+
+
   ubicacionesPredefinidas = [
-    { nombre: 'Quito', latitud: -0.1807, longitud: -78.4678 },
-    { nombre: 'Guayaquil', latitud: -2.1894, longitud: -79.8890 },
-    { nombre: 'Cuenca', latitud: -2.9001, longitud: -79.0059 },
-    { nombre: 'Galápagos (Santa Cruz)', latitud: -0.7431, longitud: -90.3112 },
-    { nombre: 'Manta', latitud: -0.9677, longitud: -80.7099 },
-    { nombre: 'Baños', latitud: -1.3928, longitud: -78.4269 },
-    { nombre: 'Otavalo', latitud: 0.2342, longitud: -78.2611 },
-    { nombre: 'Tena', latitud: -1.0471, longitud: -77.8127 }
+    // REGIÓN COSTA
+    { nombre: 'Esmeraldas (Esmeraldas)', latitud: 0.9592, longitud: -79.6567 },
+    { nombre: 'Bahía de Caráquez (Manabí)', latitud: -0.5928, longitud: -80.4189 },
+    { nombre: 'Portoviejo (Manabí)', latitud: -1.0545, longitud: -80.4545 },
+    { nombre: 'Babahoyo (Los Ríos)', latitud: -1.8058, longitud: -79.5342 },
+    { nombre: 'Guayaquil (Guayas)', latitud: -2.1962, longitud: -79.8862 },
+    { nombre: 'Santa Elena (Santa Elena)', latitud: -2.2269, longitud: -80.8590 },
+    { nombre: 'Machala (El Oro)', latitud: -3.2581, longitud: -79.9553 },
+    { nombre: 'Santo Domingo (Santo Domingo de los Tsáchilas)', latitud: -0.2500, longitud: -79.1750 },
+
+    // REGIÓN SIERRA
+    { nombre: 'Tulcán (Carchi)', latitud: 0.8118, longitud: -77.7178 },
+    { nombre: 'Ibarra (Imbabura)', latitud: 0.3492, longitud: -78.1217 },
+    { nombre: 'Quito (Pichincha)', latitud: -0.1807, longitud: -78.4678 },
+    { nombre: 'Latacunga (Cotopaxi)', latitud: -0.9324, longitud: -78.6158 },
+    { nombre: 'Ambato (Tungurahua)', latitud: -1.2416, longitud: -78.6267 },
+    { nombre: 'Guaranda (Bolívar)', latitud: -1.5883, longitud: -79.0058 },
+    { nombre: 'Riobamba (Chimborazo)', latitud: -1.6635, longitud: -78.6547 },
+    { nombre: 'Azogues (Cañar)', latitud: -2.5597, longitud: -78.9406 },
+    { nombre: 'Cuenca (Azuay)', latitud: -2.8969, longitud: -79.0067 },
+    { nombre: 'Loja (Loja)', latitud: -3.9928, longitud: -79.2042 },
+
+    // REGIÓN ORIENTE (AMAZONÍA)
+    { nombre: 'Nueva Loja (Sucumbíos)', latitud: 0.0836, longitud: -76.8983 },
+    { nombre: 'Orellana (Orellana)', latitud: -0.4616, longitud: -76.9875 },
+    { nombre: 'Tena (Napo)', latitud: -1.0049, longitud: -77.8076 },
+    { nombre: 'Puyo (Pastaza)', latitud: -1.4869, longitud: -77.9958 },
+    { nombre: 'Macas (Morona Santiago)', latitud: -2.3084, longitud: -78.1175 },
+    { nombre: 'Zamora (Zamora Chinchipe)', latitud: -4.0669, longitud: -78.9547 },
+
+    // REGIÓN INSULAR
+    { nombre: 'Puerto Baquerizo Moreno (Galápagos)', latitud: -0.9000, longitud: -89.6000 },
+    { nombre: 'Puerto Ayora (Galápagos)', latitud: -0.7431, longitud: -90.3112 },
+
+    // UBICACIONES ADICIONALES IMPORTANTES
+    { nombre: 'Manta (Manabí)', latitud: -0.9677, longitud: -80.7137 },
+    { nombre: 'Salinas (Santa Elena)', latitud: -2.2158, longitud: -80.9553 },
+    { nombre: 'Coca (Orellana)', latitud: -0.4616, longitud: -76.9875 },
+    { nombre: 'Milagro (Guayas)', latitud: -2.1342, longitud: -79.5942 },
+    { nombre: 'Otavalo (Imbabura)', latitud: 0.2342, longitud: -78.2611 },
+    { nombre: 'Baños de Agua Santa (Tungurahua)', latitud: -1.3928, longitud: -78.4267 }
   ];
 
   // Habitats comunes en Ecuador
@@ -138,7 +172,6 @@ export class EspeciesFormComponent implements OnInit {
         registrado_por: this.especie.registrado_por
       };
 
-      // ✅ AGREGAR: Cargar imágenes existentes
       this.loadExistingImages();
     } else {
       // Modo creación - valores por defecto
@@ -147,11 +180,10 @@ export class EspeciesFormComponent implements OnInit {
     }
   }
 
-  // ✅ AGREGAR: Método para cargar imágenes existentes
   private loadExistingImages(): void {
     if (this.especie?.imagenes && this.especie.imagenes.length > 0) {
       console.log('Cargando imágenes existentes:', this.especie.imagenes);
-      
+
       this.existingImages = this.especie.imagenes.map(imagen => ({
         preview: imagen.url,
         url: imagen.url,
@@ -159,10 +191,10 @@ export class EspeciesFormComponent implements OnInit {
         isExisting: true,
         name: imagen.nombre || 'Imagen existente'
       }));
-      
+
       // Copiar a selectedImages para mostrar en el preview
       this.selectedImages = [...this.existingImages];
-      
+
       console.log('Imágenes cargadas:', this.selectedImages.length);
     } else {
       console.log('No hay imágenes existentes para cargar');
@@ -178,7 +210,7 @@ export class EspeciesFormComponent implements OnInit {
     }
 
     this.errors = {};
-    
+
     if (!this.validateForm()) {
       return;
     }
@@ -195,7 +227,7 @@ export class EspeciesFormComponent implements OnInit {
   private createEspecie(): void {
     // Crear FormData para enviar archivos
     const formData = new FormData();
-    
+
     // Agregar datos del formulario (excepto latitud y longitud)
     Object.keys(this.formData).forEach(key => {
       if (key !== 'latitud' && key !== 'longitud') {
@@ -226,7 +258,7 @@ export class EspeciesFormComponent implements OnInit {
 
     this.especiesService.createEspecieWithImages(formData).subscribe({
       next: (nuevaEspecie) => {
-        this.router.navigate(['/catalogo'], { 
+        this.router.navigate(['/catalogo'], {
           queryParams: { message: 'Especie creada exitosamente' }
         });
         this.isLoading = false;
@@ -292,7 +324,7 @@ export class EspeciesFormComponent implements OnInit {
 
     this.especiesService.updateEspecieWithImages(this.especie.id, formData).subscribe({
       next: () => {
-        this.router.navigate(['/catalogo'], { 
+        this.router.navigate(['/catalogo'], {
           queryParams: { message: 'Especie actualizada exitosamente' }
         });
         this.isLoading = false;
@@ -305,10 +337,9 @@ export class EspeciesFormComponent implements OnInit {
     });
   }
 
-  // ✅ AGREGAR: Método para seleccionar archivos
   onFileSelected(event: any): void {
     const files: FileList = event.target.files;
-    
+
     if (!files || files.length === 0) {
       return;
     }
@@ -355,21 +386,20 @@ export class EspeciesFormComponent implements OnInit {
     event.target.value = '';
   }
 
-  // ✅ MODIFICAR: Método para remover imágenes
   removeImage(index: number): void {
     const imageToRemove = this.selectedImages[index];
-    
+
     console.log('Removiendo imagen:', imageToRemove);
-    
+
     // Si es una imagen existente, agregarla a la lista de eliminación
     if (imageToRemove.isExisting && imageToRemove.id) {
       this.imagesToDelete.push(imageToRemove.id);
       console.log('Marcada para eliminar:', imageToRemove.id);
     }
-    
+
     // Remover de selectedImages
     this.selectedImages.splice(index, 1);
-    
+
     // Validar cantidad mínima
     if (this.selectedImages.length < this.minImages) {
       this.errors.images = `Mínimo ${this.minImages} imagen requerida`;
@@ -378,7 +408,7 @@ export class EspeciesFormComponent implements OnInit {
     }
   }
 
-  // ✅ MODIFICAR: Validación para incluir imágenes en modo edición
+
   private validateForm(): boolean {
     const errors: any = {};
 
@@ -399,7 +429,6 @@ export class EspeciesFormComponent implements OnInit {
       errors.habitat = 'El hábitat es requerido';
     }
 
-    // ✅ VALIDACIÓN: Mínimo de imágenes (solo en modo creación o si no hay imágenes existentes)
     if (!this.isEditMode || this.selectedImages.length === 0) {
       if (this.selectedImages.length < this.minImages) {
         errors.images = `Mínimo ${this.minImages} imagen requerida`;
@@ -437,9 +466,9 @@ export class EspeciesFormComponent implements OnInit {
       west: -92.0
     };
 
-    return lat >= ecuadorBounds.south && 
-           lat <= ecuadorBounds.north && 
-           lng >= ecuadorBounds.west && 
+    return lat >= ecuadorBounds.south &&
+           lat <= ecuadorBounds.north &&
+           lng >= ecuadorBounds.west &&
            lng <= ecuadorBounds.east;
   }
 
@@ -450,14 +479,62 @@ export class EspeciesFormComponent implements OnInit {
   }
 
   onUbicacionChange(event: any): void {
-    const ubicacionSeleccionada = this.ubicacionesPredefinidas.find(
-      u => u.nombre === event.target.value
-    );
-    
+    const ubicacionSeleccionada = event.target.value;
+
     if (ubicacionSeleccionada) {
-      this.formData.latitud = ubicacionSeleccionada.latitud;
-      this.formData.longitud = ubicacionSeleccionada.longitud;
+      console.log('🗺️ Ubicación seleccionada:', ubicacionSeleccionada);
+
+      const ubicacion = this.ubicacionesPredefinidas.find(
+        u => u.nombre === ubicacionSeleccionada
+      );
+
+      if (ubicacion) {
+        this.formData.latitud = ubicacion.latitud;
+        this.formData.longitud = ubicacion.longitud;
+
+        console.log(` Coordenadas actualizadas: ${ubicacion.latitud}, ${ubicacion.longitud}`);
+
+        // Limpiar errores de coordenadas si existen
+        delete this.errors.latitud;
+        delete this.errors.longitud;
+        delete this.errors.coordenadas;
+
+        // Mostrar notificación visual (opcional)
+        this.showLocationUpdateNotification(ubicacion);
+      }
     }
+  }
+
+  private showLocationUpdateNotification(ubicacion: any): void {
+    // Crear elemento de notificación temporal
+    const notification = document.createElement('div');
+    notification.innerHTML = `
+      <div style="
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #28a745;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        z-index: 9999;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideIn 0.3s ease-out;
+      ">
+          Ubicación actualizada: ${ubicacion.nombre}
+        <br>
+        <small>${ubicacion.latitud.toFixed(4)}, ${ubicacion.longitud.toFixed(4)}</small>
+      </div>
+    `;
+
+    document.body.appendChild(notification);
+
+    // Remover después de 3 segundos
+    setTimeout(() => {
+      if (document.body.contains(notification)) {
+        document.body.removeChild(notification);
+      }
+    }, 3000);
   }
 
   onFamiliaChange(event: any): void {

@@ -21,7 +21,7 @@ class EspeciesController extends BaseController {
                     break;
 
                 case 'POST':
-                    // ✅ DETECTAR si es creación con imágenes y verificar Storage
+                    //  DETECTAR si es creación con imágenes y verificar Storage
                     if (isset($_FILES['imagenes']) && !empty($_FILES['imagenes']['name'][0])) {
                         try {
                             // Verificar que Storage funciona antes de procesar
@@ -43,7 +43,7 @@ class EspeciesController extends BaseController {
                         $this->sendError('ID requerido para actualizar', 400);
                         return;
                     }
-                    // ✅ DETECTAR si es actualización con imágenes
+                    //  DETECTAR si es actualización con imágenes
                     if (isset($_FILES['imagenes']) && !empty($_FILES['imagenes']['name'][0])) {
                         $this->updateEspecieWithImages($id);
                     } else {
@@ -68,7 +68,7 @@ class EspeciesController extends BaseController {
         }
     }
 
-    // ✅ MÉTODO ACTUALIZADO para incluir imágenes
+    // MÉTODO ACTUALIZADO para incluir imágenes
     private function getAllEspecies() {
         $especiesRef = $this->database->getReference('especies');
         $snapshot = $especiesRef->getSnapshot();
@@ -80,14 +80,14 @@ class EspeciesController extends BaseController {
             }
         }
 
-        // ✅ FORMATO compatible con Angular
+        //  FORMATO compatible con Angular
         $this->sendResponse(true, [
             'especies' => $result,
             'total' => count($result)
         ], 'Especies obtenidas exitosamente');
     }
 
-    // ✅ NUEVO MÉTODO para determinar región por coordenadas
+
     private function determinarRegion($coordenadas) {
         $lat = floatval($coordenadas['latitud'] ?? 0);
         $lng = floatval($coordenadas['longitud'] ?? 0);
@@ -106,7 +106,7 @@ class EspeciesController extends BaseController {
         }
     }
 
-    // ✅ MÉTODO ACTUALIZADO para filtrar por región con imágenes
+    // MÉTODO ACTUALIZADO para filtrar por región con imágenes
     public function getEspeciesPorRegion($region) {
         $especiesRef = $this->database->getReference('especies');
         $snapshot = $especiesRef->getSnapshot();
@@ -129,7 +129,7 @@ class EspeciesController extends BaseController {
         ], "Especies de $region obtenidas exitosamente");
     }
 
-    // ✅ MÉTODO ACTUALIZADO para incluir imágenes
+    //  MÉTODO ACTUALIZADO para incluir imágenes
     private function getEspecie($id) {
     try {
         $especieRef = $this->database->getReference('especies/' . $id);
@@ -141,12 +141,12 @@ class EspeciesController extends BaseController {
         }
 
         $data = $snapshot->getValue();
-        
+
         // Obtener comentarios con consulta optimizada
         $comentariosQuery = $this->database->getReference('comentarios')
             ->orderByChild('especie_id')
             ->equalTo($id);
-            
+
         $comentariosData = $comentariosQuery->getValue();
         $comentarios = [];
 
@@ -167,16 +167,16 @@ class EspeciesController extends BaseController {
         });
 
         $data['comentarios'] = $comentarios;
-        
+
         $this->sendResponse(true, $this->formatEspecieForFrontend($data, $id), 'Especie encontrada');
-        
+
     } catch (Exception $e) {
         error_log("Error en getEspecie: " . $e->getMessage());
         $this->sendError('Error al obtener especie', 500);
     }
 }
 
-    // ✅ MÉTODO ORIGINAL sin cambios (para compatibilidad)
+    // MÉTODO ORIGINAL sin cambios (para compatibilidad)
     private function createEspecie() {
         $data = $this->getRequestData();
 
@@ -203,7 +203,7 @@ class EspeciesController extends BaseController {
             'fecha_registro' => date('Y-m-d H:i:s'),
             'registrado_por' => $data['registrado_por'] ?? 'sistema',
             'activo' => true,
-            'imagenes' => [] // ✅ Agregar array vacío de imágenes
+            'imagenes' => []
         ];
 
         $especiesRef = $this->database->getReference('especies');
@@ -214,16 +214,16 @@ class EspeciesController extends BaseController {
         $this->sendResponse(true, $response, 'Especie creada exitosamente');
     }
 
-    // ✅ NUEVO: Crear especie con imágenes
+
     private function createEspecieWithImages() {
         try {
             error_log("=== INICIO createEspecieWithImages ===");
-            
+
             $data = $this->getRequestData();
             error_log("Datos POST: " . print_r($data, true));
             error_log("Archivos FILES: " . print_r($_FILES, true));
-            
-            // Validar datos requeridos
+
+
             $required = ['nombre_cientifico', 'nombre_vulgar', 'familia'];
             foreach ($required as $field) {
                 if (empty($data[$field])) {
@@ -233,21 +233,21 @@ class EspeciesController extends BaseController {
                 }
             }
 
-            // Verificar que existen archivos de imagen
+
             if (!isset($_FILES['imagenes'])) {
                 error_log("No se encontraron archivos en _FILES['imagenes']");
                 $this->sendError("No se recibieron archivos de imagen", 400);
                 return;
             }
 
-            // Procesar imágenes
+
             error_log("Procesando imágenes...");
             $imageUrls = $this->uploadImages($_FILES['imagenes']);
             if ($imageUrls === false) {
                 error_log("Error procesando imágenes");
-                return; // Error ya enviado en uploadImages
+                return;
             }
-            
+
             error_log("Imágenes procesadas exitosamente: " . count($imageUrls) . " imágenes");
 
             $nuevaEspecie = [
@@ -272,13 +272,13 @@ class EspeciesController extends BaseController {
             $newRef = $especiesRef->push($nuevaEspecie);
 
             $nuevaEspecie['id'] = $newRef->getKey();
-            
+
             // Formatear respuesta para el frontend
             $response = $this->formatEspecieForFrontend($nuevaEspecie, $nuevaEspecie['id']);
             error_log("Especie creada exitosamente con ID: " . $nuevaEspecie['id']);
-            
+
             $this->sendResponse(true, $response, 'Especie creada exitosamente');
-            
+
         } catch (Exception $e) {
             error_log("Exception en createEspecieWithImages: " . $e->getMessage());
             error_log("Stack trace: " . $e->getTraceAsString());
@@ -286,7 +286,7 @@ class EspeciesController extends BaseController {
         }
     }
 
-    // ✅ MÉTODO ORIGINAL actualizado para mantener imágenes
+    // MÉTODO ORIGINAL actualizado para mantener imágenes
     private function updateEspecie($id) {
         $especieRef = $this->database->getReference('especies/' . $id);
         $snapshot = $especieRef->getSnapshot();
@@ -326,15 +326,15 @@ class EspeciesController extends BaseController {
         ];
 
         $especieRef->update($datosActualizados);
-        
-        // Obtener datos actualizados
+
+
         $especieActualizada = array_merge($especieActual, $datosActualizados);
         $response = $this->formatEspecieForFrontend($especieActualizada, $id);
-        
+
         $this->sendResponse(true, $response, 'Especie actualizada exitosamente');
     }
 
-    // ✅ NUEVO: Actualizar especie con imágenes
+
     private function updateEspecieWithImages($id) {
         $especieRef = $this->database->getReference('especies/' . $id);
         $snapshot = $especieRef->getSnapshot();
@@ -361,7 +361,7 @@ class EspeciesController extends BaseController {
         if (isset($_FILES['imagenes']) && !empty($_FILES['imagenes']['name'][0])) {
             $newImageUrls = $this->uploadImages($_FILES['imagenes']);
             if ($newImageUrls === false) {
-                return; // Error ya enviado
+                return;
             }
         }
 
@@ -376,12 +376,12 @@ class EspeciesController extends BaseController {
             if (in_array($image['id'], $keepingImages)) {
                 $finalImages[] = $image;
             } elseif (in_array($image['id'], $imagesToDelete)) {
-                // Eliminar imagen de Firebase Storage
+
                 $this->deleteImageFromStorage($image['url']);
             }
         }
 
-        // Agregar nuevas imágenes
+
         $finalImages = array_merge($finalImages, $newImageUrls);
 
         $datosActualizados = [
@@ -400,22 +400,22 @@ class EspeciesController extends BaseController {
         ];
 
         $especieRef->update($datosActualizados);
-        
-        // Obtener datos actualizados y formatear
+
+
         $especieActualizada = array_merge($especieActual, $datosActualizados);
         $response = $this->formatEspecieForFrontend($especieActualizada, $id);
-        
+
         $this->sendResponse(true, $response, 'Especie actualizada exitosamente');
     }
 
-    // ✅ MÉTODO ACTUALIZADO para eliminar también las imágenes
+
     private function deleteEspecie($id) {
         $especieRef = $this->database->getReference('especies/' . $id);
         $snapshot = $especieRef->getSnapshot();
 
         $especieData = $snapshot->getValue();
 
-        // Obtener UID del usuario autenticado
+
         $data = $this->getRequestData();
         $uid = $data['uid'] ?? null;
         if (!$uid || $especieData['registrado_por'] !== $uid) {
@@ -429,7 +429,7 @@ class EspeciesController extends BaseController {
         }
 
         $especieData = $snapshot->getValue();
-        
+
         // Eliminar imágenes de Firebase Storage
         if (isset($especieData['imagenes']) && is_array($especieData['imagenes'])) {
             foreach ($especieData['imagenes'] as $imagen) {
@@ -441,19 +441,19 @@ class EspeciesController extends BaseController {
         $this->sendResponse(true, ['id' => $id], 'Especie eliminada exitosamente');
     }
 
-    // ✅ MÉTODO uploadImages CORREGIDO
+
     private function uploadImages($files) {
         try {
             error_log("=== INICIO uploadImages ===");
             error_log("Files recibidos: " . print_r($files, true));
-            
+
             $imageUrls = [];
             $maxImages = 5;
 
             // Verificar número máximo de imágenes
             $fileCount = is_array($files['name']) ? count($files['name']) : 1;
             error_log("Número de archivos: $fileCount");
-            
+
             if ($fileCount > $maxImages) {
                 error_log("Demasiados archivos: $fileCount > $maxImages");
                 $this->sendError("Máximo $maxImages imágenes permitidas", 400);
@@ -502,16 +502,15 @@ class EspeciesController extends BaseController {
                 error_log("Subiendo archivo como: $filePath");
 
                 try {
-                    // ✅ SIMPLIFICACIÓN: Usar bucket por defecto configurado
-                    $bucket = $this->storage->getBucket(); // Sin parámetros - usa el por defecto
+
+                    $bucket = $this->storage->getBucket();
                     error_log("Bucket obtenido: " . $bucket->name());
-                    
-                    // ✅ SUBIDA SIMPLIFICADA con mejor manejo de errores
+
                     $fileContent = file_get_contents($file['tmp_name']);
                     if ($fileContent === false) {
                         throw new Exception("No se pudo leer el archivo temporal");
                     }
-                    
+
                     $object = $bucket->upload($fileContent, [
                         'name' => $filePath,
                         'metadata' => [
@@ -523,10 +522,9 @@ class EspeciesController extends BaseController {
                         ]
                     ]);
 
-                    // ✅ HACER PÚBLICO el archivo
+
                     $object->update(['acl' => []], ['predefinedAcl' => 'publicRead']);
 
-                    // ✅ OBTENER URL pública correcta
                     $publicUrl = sprintf(
                         'https://storage.googleapis.com/%s/%s',
                         $bucket->name(),
@@ -554,7 +552,7 @@ class EspeciesController extends BaseController {
 
             error_log("Todas las imágenes subidas exitosamente: " . count($imageUrls) . " imágenes");
             return $imageUrls;
-            
+
         } catch (Exception $e) {
             error_log("Exception en uploadImages: " . $e->getMessage());
             error_log("Stack trace: " . $e->getTraceAsString());
@@ -563,26 +561,25 @@ class EspeciesController extends BaseController {
         }
     }
 
-    // ✅ NUEVO: Eliminar imagen de Firebase Storage
+
     private function deleteImageFromStorage($imageUrl) {
         try {
-            // Extraer el path del archivo de la URL
+
             $urlParts = parse_url($imageUrl);
             $path = ltrim($urlParts['path'], '/');
-            
-            // Remover el nombre del bucket del path
+
             $bucketName = $this->storage->getBucket()->name();
             $filePath = str_replace($bucketName . '/', '', $path);
 
             $bucket = $this->storage->getBucket();
             $object = $bucket->object($filePath);
-            
+
             if ($object->exists()) {
                 $object->delete();
             }
 
         } catch (Exception $e) {
-            // Log error pero no detener la ejecución
+
             error_log('Error eliminando imagen: ' . $e->getMessage());
         }
     }
@@ -592,7 +589,7 @@ class EspeciesController extends BaseController {
    public function agregarComentario($especieId) {
     try {
         error_log("\n==== INICIO AGREGAR COMENTARIO ====");
-        
+
         // 1. Leer y validar input
         $jsonInput = file_get_contents('php://input');
         if (empty($jsonInput)) {
@@ -635,10 +632,10 @@ class EspeciesController extends BaseController {
         $comentariosQuery = $this->database->getReference('comentarios')
             ->orderByChild('especie_id')
             ->equalTo($especieId);
-            
+
         $comentariosData = $comentariosQuery->getValue();
         $comentarios = [];
-        
+
         if (is_array($comentariosData)) {
             foreach ($comentariosData as $key => $value) {
                 // Filtrar solo comentarios activos
@@ -666,8 +663,8 @@ class EspeciesController extends BaseController {
 
         // 8. Responder con la especie actualizada
         $this->sendResponse(
-            true, 
-            $this->formatEspecieForFrontend($especieData, $especieId), 
+            true,
+            $this->formatEspecieForFrontend($especieData, $especieId),
             'Comentario agregado exitosamente',
             201
         );
@@ -678,7 +675,6 @@ class EspeciesController extends BaseController {
     }
 }
 
-// Función auxiliar para sanitizar input
 
 
 // Función auxiliar para enviar respuestas de error
@@ -704,7 +700,6 @@ protected function sanitizeInput($input) {
     return htmlspecialchars(trim($input), ENT_QUOTES, 'UTF-8');
 }
 
-    // ✅ NUEVO: Formatear datos para el frontend
     private function formatEspecieForFrontend($especieData, $id) {
     return [
         'id' => $id,
@@ -723,17 +718,17 @@ protected function sanitizeInput($input) {
         'registrado_por' => $especieData['registrado_por'] ?? 'sistema',
         'activo' => $especieData['activo'] ?? true,
         'imagenes' => $especieData['imagenes'] ?? [],
-        'comentarios' => $especieData['comentarios'] ?? [] // Asegurar que siempre haya array
+        'comentarios' => $especieData['comentarios'] ?? []
     ];
 }
 
-    // ✅ AGREGAR: Método fallback cuando Storage no funciona
+
     private function createEspecieFallback() {
         try {
             error_log("=== INICIO createEspecieFallback ===");
-            
+
             $data = $this->getRequestData();
-            
+
             // Validar datos requeridos
             $required = ['nombre_cientifico', 'nombre_vulgar', 'familia'];
             foreach ($required as $field) {
@@ -766,9 +761,9 @@ protected function sanitizeInput($input) {
 
             $nuevaEspecie['id'] = $newRef->getKey();
             $response = $this->formatEspecieForFrontend($nuevaEspecie, $nuevaEspecie['id']);
-            
+
             $this->sendResponse(true, $response, 'Especie creada exitosamente (sin imágenes - Storage temporalmente no disponible)');
-            
+
         } catch (Exception $e) {
             error_log("Exception en createEspecieFallback: " . $e->getMessage());
             $this->sendError('Error creando especie: ' . $e->getMessage(), 500);

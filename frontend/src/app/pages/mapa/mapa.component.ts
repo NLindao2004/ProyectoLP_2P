@@ -46,11 +46,11 @@ export class MapaComponent implements OnInit {
     ]
   };
 
-  // Datos
+
   especies: Especie[] = [];
   especiesFiltradas: Especie[] = [];
 
-  // ✅ PROVINCIAS DE ECUADOR con coordenadas precisas
+
   provincias: ProvinciaInfo[] = [
     {
       name: 'Pichincha',
@@ -413,7 +413,6 @@ export class MapaComponent implements OnInit {
     console.log(`📍 Marcadores creados: ${this.markers.length}`);
   }
 
-  // ✅ FUNCIÓN SVG (sin cambios)
   getMarkerIcon(status: string): string {
     const createSVGIcon = (color: string, borderColor: string = '#ffffff'): string => {
       const svg = `
@@ -486,7 +485,7 @@ export class MapaComponent implements OnInit {
 
       console.log('📊 Conteo por estado:', conteo);
 
-      // ✅ NUEVO DEBUG: Mostrar especies por provincia
+
       const conteoPorProvincia = this.especies.reduce((acc, especie) => {
         const provincia = this.determinarProvinciaPorCoordenadas(especie.coordenadas.latitud, especie.coordenadas.longitud);
         acc[provincia] = (acc[provincia] || 0) + 1;

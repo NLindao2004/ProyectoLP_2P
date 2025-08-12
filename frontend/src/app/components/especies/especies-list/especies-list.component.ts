@@ -9,7 +9,7 @@ import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { Router } from '@angular/router';
-import { UsuarioService } from '../../../services/usuario.service'; // Agrega este import
+import { UsuarioService } from '../../../services/usuario.service';
 
 @Component({
   selector: 'app-especies-list',
@@ -32,7 +32,6 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
 
 
 
-  // ✅ AGREGAR: Output para emitir evento de edición
   @Output() editEspecie = new EventEmitter<Especie>();
 
   // Estadísticas
@@ -49,11 +48,11 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
   constructor(
     private especiesService: EspeciesService,
     private router: Router,
-    private usuarioService: UsuarioService 
+    private usuarioService: UsuarioService
   ) {}
 
   ngOnInit(): void {
-    this.usuarioUid = this.usuarioService.getUid(); // Obtén el UID al iniciar
+    this.usuarioUid = this.usuarioService.getUid();
     this.loadData();
   }
 
@@ -127,7 +126,7 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
 
   }
 
-  // ✅ MODIFICAR: Método para editar especie (ahora emite evento)
+
   onEditEspecie(especie: Especie): void {
     console.log('Emitiendo evento de edición para:', especie.nombre_cientifico);
     this.editEspecie.emit(especie);
@@ -138,7 +137,7 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
       this.especiesService.deleteEspecie(especie.id!).subscribe({
         next: () => {
           console.log('Especie eliminada exitosamente');
-          // La lista se actualizará automáticamente por el observable
+
         },
         error: (error) => {
           console.error('Error eliminando especie:', error);
@@ -174,7 +173,7 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
 
     const nuevoComent: Comentario = {
       texto: this.nuevoComentario[especieId].trim(),
-      autor: 'Usuario', // Reemplaza con tu lógica de usuario real
+      autor: 'Usuario',
       fecha: new Date().toISOString()
     };
 
@@ -185,17 +184,14 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
         next: (especieActualizada) => {
           const index = this.especies.findIndex(e => e.id === especieId);
           if (index !== -1) {
-            // ✅ Actualizamos solo el array de comentarios
+
             this.especies[index].comentarios = especieActualizada.comentarios;
           }
 
-          // Actualizamos la lista filtrada
           this.especiesFiltradas = [...this.especies];
 
-          // Limpiar el campo de texto
           this.nuevoComentario[especieId] = '';
 
-          // Marcar como terminado
           this.cargandoComentario[especieId] = false;
         },
         error: (err) => {
@@ -206,7 +202,6 @@ export class EspeciesListComponent implements OnInit, OnDestroy {
       });
   }
 
-  // Métodos para reportes (mantener existentes)
   generateReport(format: 'csv' | 'pdf'): void {
     const especiesReporte = this.especiesFiltradas;
 

@@ -3,10 +3,10 @@
   <div class="page-header">
     <div class="header-content">
       <button type="button" class="btn-back" (click)="closeForm()" aria-label="Volver">
-        ← Volver al Catálogo
+         Volver al Catálogo
       </button>
       <h1>
-        {{ isEditMode ? '✏️ Editar Especie' : '🌿 Registrar Nueva Especie' }}
+        {{ isEditMode ? ' Editar Especie' : '🌿 Registrar Nueva Especie' }}
       </h1>
     </div>
   </div>
@@ -18,11 +18,11 @@
 
   <!-- Formulario -->
   <form #especieForm="ngForm" (ngSubmit)="onSubmit(especieForm)" class="especies-form">
-    
+
     <!-- Información Básica -->
     <fieldset class="form-section">
-      <legend>📋 Información Básica</legend>
-      
+      <legend> Información Básica</legend>
+
       <div class="form-row">
         <div class="form-group">
           <label for="nombre_cientifico" class="required">Nombre Científico</label>
@@ -94,10 +94,9 @@
       </div>
     </fieldset>
 
-    <!-- ✅ IMÁGENES - Sección actualizada -->
     <fieldset class="form-section">
-      <legend>📸 Imágenes de la Especie</legend>
-      
+      <legend> Imágenes de la Especie</legend>
+
       <div class="image-upload-section">
         <div class="upload-info">
           <p><strong>Cargar imágenes:</strong> Mínimo 1, máximo 5 imágenes</p>
@@ -109,7 +108,6 @@
           </div>
         </div>
 
-        <!-- ✅ Solo mostrar input si no se ha alcanzado el máximo -->
         <div *ngIf="selectedImages.length < maxImages" class="image-upload-area">
           <input
             type="file"
@@ -120,7 +118,7 @@
             multiple
             accept="image/*"
             class="file-input">
-          
+
           <label for="imageFiles" class="file-upload-label">
             <div class="upload-content">
               <span class="upload-icon">📷</span>
@@ -131,20 +129,18 @@
           </label>
         </div>
 
-        <!-- ✅ Vista previa de imágenes - ACTUALIZADA para manejar existentes y nuevas -->
         <div *ngIf="selectedImages.length > 0" class="image-preview-grid">
           <div *ngFor="let image of selectedImages; let i = index" class="image-preview-item">
             <img [src]="image.preview" [alt]="image.name || 'Imagen'" class="preview-image">
             <div class="image-info">
               <div class="image-name-container">
                 <span class="image-name">{{ image.name || 'Imagen existente' }}</span>
-                <!-- ✅ Badges para diferenciar imágenes -->
                 <span *ngIf="image.isExisting" class="existing-badge">📎 Existente</span>
                 <span *ngIf="!image.isExisting" class="new-badge">🆕 Nueva</span>
               </div>
-              <button 
-                type="button" 
-                class="btn-remove" 
+              <button
+                type="button"
+                class="btn-remove"
                 (click)="removeImage(i)"
                 [title]="image.isExisting ? 'Eliminar imagen existente' : 'Remover imagen nueva'">
                 ✕
@@ -153,7 +149,6 @@
           </div>
         </div>
 
-        <!-- ✅ Mensaje cuando no hay imágenes -->
         <div *ngIf="selectedImages.length === 0" class="no-images-message">
           <div class="no-images-content">
             <span class="no-images-icon">🖼️</span>
@@ -166,7 +161,6 @@
           </div>
         </div>
 
-        <!-- ✅ Error de imágenes -->
         <div *ngIf="errors.images" class="field-error">
           {{ errors.images }}
         </div>
@@ -175,8 +169,8 @@
 
     <!-- Hábitat y Descripción -->
     <fieldset class="form-section">
-      <legend>🌍 Hábitat y Descripción</legend>
-      
+      <legend> Hábitat y Descripción</legend>
+
       <div class="form-group">
         <label for="habitat" class="required">Hábitat</label>
         <div class="input-with-select">
@@ -195,7 +189,7 @@
             </option>
           </select>
         </div>
-        
+
         <div *ngIf="isFieldInvalid('habitat', especieForm)" class="field-error">
           {{ getFieldError('habitat') }}
         </div>
@@ -218,8 +212,8 @@
 
     <!-- Ubicación Geográfica -->
     <fieldset class="form-section">
-      <legend>📍 Ubicación Geográfica</legend>
-      
+      <legend> Ubicación Geográfica</legend>
+
       <div class="form-group">
         <label for="ubicacion_predefinida">Ubicación Rápida</label>
         <select
@@ -227,12 +221,55 @@
           (change)="onUbicacionChange($event)"
           class="form-control">
           <option value="">Seleccionar ubicación predefinida...</option>
-          <option *ngFor="let ubicacion of ubicacionesPredefinidas" [value]="ubicacion.nombre">
-            {{ ubicacion.nombre }}
-          </option>
+
+
+          <optgroup label="🏖️ REGIÓN COSTA">
+            <option value="Esmeraldas (Esmeraldas)">Esmeraldas (Esmeraldas)</option>
+            <option value="Portoviejo (Manabí)">Portoviejo (Manabí)</option>
+            <option value="Manta (Manabí)">Manta (Manabí)</option>
+            <option value="Babahoyo (Los Ríos)">Babahoyo (Los Ríos)</option>
+            <option value="Guayaquil (Guayas)">Guayaquil (Guayas)</option>
+            <option value="Milagro (Guayas)">Milagro (Guayas)</option>
+            <option value="Santa Elena (Santa Elena)">Santa Elena (Santa Elena)</option>
+            <option value="Salinas (Santa Elena)">Salinas (Santa Elena)</option>
+            <option value="Machala (El Oro)">Machala (El Oro)</option>
+            <option value="Santo Domingo (Santo Domingo de los Tsáchilas)">Santo Domingo (Santo Domingo de los Tsáchilas)</option>
+          </optgroup>
+
+
+          <optgroup label="🏔️ REGIÓN SIERRA">
+            <option value="Tulcán (Carchi)">Tulcán (Carchi)</option>
+            <option value="Ibarra (Imbabura)">Ibarra (Imbabura)</option>
+            <option value="Otavalo (Imbabura)">Otavalo (Imbabura)</option>
+            <option value="Quito (Pichincha)">Quito (Pichincha)</option>
+            <option value="Latacunga (Cotopaxi)">Latacunga (Cotopaxi)</option>
+            <option value="Ambato (Tungurahua)">Ambato (Tungurahua)</option>
+            <option value="Baños de Agua Santa (Tungurahua)">Baños de Agua Santa (Tungurahua)</option>
+            <option value="Guaranda (Bolívar)">Guaranda (Bolívar)</option>
+            <option value="Riobamba (Chimborazo)">Riobamba (Chimborazo)</option>
+            <option value="Azogues (Cañar)">Azogues (Cañar)</option>
+            <option value="Cuenca (Azuay)">Cuenca (Azuay)</option>
+            <option value="Loja (Loja)">Loja (Loja)</option>
+          </optgroup>
+
+
+          <optgroup label="🌳 REGIÓN ORIENTE">
+            <option value="Nueva Loja (Sucumbíos)">Nueva Loja (Sucumbíos)</option>
+            <option value="Coca (Orellana)">Coca (Orellana)</option>
+            <option value="Tena (Napo)">Tena (Napo)</option>
+            <option value="Puyo (Pastaza)">Puyo (Pastaza)</option>
+            <option value="Macas (Morona Santiago)">Macas (Morona Santiago)</option>
+            <option value="Zamora (Zamora Chinchipe)">Zamora (Zamora Chinchipe)</option>
+          </optgroup>
+
+
+          <optgroup label="🏝️ REGIÓN INSULAR">
+            <option value="Puerto Baquerizo Moreno (Galápagos)">Puerto Baquerizo Moreno (Galápagos)</option>
+            <option value="Puerto Ayora (Galápagos)">Puerto Ayora (Galápagos)</option>
+          </optgroup>
         </select>
         <small class="form-hint">
-          Selecciona una ubicación conocida o ingresa coordenadas manualmente
+          <strong> Nuevo:</strong> Selecciona cualquier capital provincial y las coordenadas se actualizarán automáticamente
         </small>
       </div>
 
@@ -278,7 +315,7 @@
 
       <!-- Preview de coordenadas -->
       <div class="coordinates-preview">
-        <strong>📍 Ubicación actual:</strong>
+        <strong> Ubicación actual:</strong>
         <span class="coordinates">
           {{ formData.latitud.toFixed(4) }}, {{ formData.longitud.toFixed(4) }}
         </span>
@@ -290,7 +327,7 @@
       <legend (click)="toggleAdvanced()" class="legend-toggle">
         {{ showAdvanced ? '🔽' : '▶️' }} Información Adicional
       </legend>
-      
+
       <div *ngIf="showAdvanced" class="advanced-section">
         <div class="form-group">
           <label for="registrado_por">Registrado por</label>
@@ -309,14 +346,14 @@
       </div>
     </fieldset>
 
-    <!-- ✅ Botones de Acción - Validación actualizada -->
+
     <div class="form-actions">
       <button
         type="button"
         class="btn btn-secondary"
         (click)="closeForm()"
         [disabled]="isLoading">
-        ← Volver al Catálogo
+         Volver al Catálogo
       </button>
 
       <button
@@ -324,7 +361,7 @@
         class="btn btn-outline"
         (click)="resetForm()"
         [disabled]="isLoading">
-        🔄 Limpiar Formulario
+        Limpiar Formulario
       </button>
 
       <button
@@ -333,7 +370,7 @@
         [disabled]="isLoading || especieForm.invalid || (selectedImages.length === 0 && !isEditMode)">
         <span *ngIf="isLoading">⏳ Guardando...</span>
         <span *ngIf="!isLoading">
-          {{ isEditMode ? '💾 Actualizar Especie' : '🌿 Crear Especie' }}
+          {{ isEditMode ? ' Actualizar Especie' : ' Crear Especie' }}
         </span>
       </button>
     </div>

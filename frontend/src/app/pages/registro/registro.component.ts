@@ -37,7 +37,7 @@ export class RegistroComponent {
 
     createUserWithEmailAndPassword(this.auth, this.email, this.password)
       .then(async userCredential => {
-        // Opcional: guardar el nombre en el perfil de Firebase
+
         await updateProfile(userCredential.user, { displayName: this.nombre });
 
         // Envía los datos al backend
@@ -53,7 +53,7 @@ export class RegistroComponent {
             nombre: this.nombre,
             email: this.email,
             rol: 'usuario',
-            uid: user.uid // <-- AGREGA ESTO
+            uid: user.uid
         })
         });
 

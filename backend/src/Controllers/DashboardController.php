@@ -3,7 +3,7 @@
 require_once __DIR__ . '/BaseController.php';
 
 class DashboardController extends BaseController {
-    
+
     public function handleRequest($method, $id = null) {
         try {
             switch ($method) {
@@ -36,18 +36,18 @@ class DashboardController extends BaseController {
     private function getEspeciesStats() {
         $especiesRef = $this->database->getReference('especies');
         $snapshot = $especiesRef->getSnapshot();
-        
+
         $total = 0;
         $activas = 0;
         $porFamilia = [];
-        
+
         if ($snapshot->exists()) {
             foreach ($snapshot->getValue() as $especie) {
                 $total++;
                 if ($especie['activo'] ?? true) {
                     $activas++;
                 }
-                
+
                 $familia = $especie['familia'] ?? 'Sin clasificar';
                 $porFamilia[$familia] = ($porFamilia[$familia] ?? 0) + 1;
             }
@@ -64,18 +64,18 @@ class DashboardController extends BaseController {
     private function getUsuariosStats() {
         $usuariosRef = $this->database->getReference('usuarios');
         $snapshot = $usuariosRef->getSnapshot();
-        
+
         $total = 0;
         $activos = 0;
         $porRol = [];
-        
+
         if ($snapshot->exists()) {
             foreach ($snapshot->getValue() as $usuario) {
                 $total++;
                 if ($usuario['activo'] ?? true) {
                     $activos++;
                 }
-                
+
                 $rol = $usuario['rol'] ?? 'usuario';
                 $porRol[$rol] = ($porRol[$rol] ?? 0) + 1;
             }
@@ -92,16 +92,16 @@ class DashboardController extends BaseController {
     private function getReportesStats() {
         $reportesRef = $this->database->getReference('reportes');
         $snapshot = $reportesRef->getSnapshot();
-        
+
         $total = 0;
         $pendientes = 0;
         $completados = 0;
-        
+
         if ($snapshot->exists()) {
             foreach ($snapshot->getValue() as $reporte) {
                 $total++;
                 $estado = $reporte['estado'] ?? 'pendiente';
-                
+
                 if ($estado === 'completado') {
                     $completados++;
                 } else {
@@ -119,14 +119,14 @@ class DashboardController extends BaseController {
     }
 
     private function getActividadReciente() {
-        // Obtener últimas 10 actividades del sistema
+
         $actividades = [];
-        
+
         // Últimas especies registradas
         $especiesRef = $this->database->getReference('especies');
         $especiesQuery = $especiesRef->orderByChild('fecha_registro')->limitToLast(5);
         $especiesSnapshot = $especiesQuery->getSnapshot();
-        
+
         if ($especiesSnapshot->exists()) {
             foreach ($especiesSnapshot->getValue() as $key => $especie) {
                 $actividades[] = [
@@ -142,7 +142,7 @@ class DashboardController extends BaseController {
         $usuariosRef = $this->database->getReference('usuarios');
         $usuariosQuery = $usuariosRef->orderByChild('fecha_registro')->limitToLast(5);
         $usuariosSnapshot = $usuariosQuery->getSnapshot();
-        
+
         if ($usuariosSnapshot->exists()) {
             foreach ($usuariosSnapshot->getValue() as $key => $usuario) {
                 $actividades[] = [
@@ -154,7 +154,7 @@ class DashboardController extends BaseController {
             }
         }
 
-        // Ordenar por fecha (más recientes primero)
+
         usort($actividades, function($a, $b) {
             return strtotime($b['fecha']) - strtotime($a['fecha']);
         });
@@ -165,9 +165,9 @@ class DashboardController extends BaseController {
     private function getEstadosConservacion() {
         $especiesRef = $this->database->getReference('especies');
         $snapshot = $especiesRef->getSnapshot();
-        
+
         $estados = [];
-        
+
         if ($snapshot->exists()) {
             foreach ($snapshot->getValue() as $especie) {
                 $estado = $especie['estado_conservacion'] ?? 'No evaluado';
@@ -181,7 +181,7 @@ class DashboardController extends BaseController {
     private function getEstadisticasPorRegion() {
         $especiesRef = $this->database->getReference('especies');
         $snapshot = $especiesRef->getSnapshot();
-        
+
         $regiones = [
             'Costa' => 0,
             'Sierra' => 0,
@@ -189,7 +189,7 @@ class DashboardController extends BaseController {
             'Galápagos' => 0,
             'No especificado' => 0
         ];
-        
+
         if ($snapshot->exists()) {
             foreach ($snapshot->getValue() as $especie) {
                 $coordenadas = $especie['coordenadas'] ?? null;
@@ -206,7 +206,7 @@ class DashboardController extends BaseController {
     }
 
     private function determinarRegion($latitud, $longitud) {
-        // Lógica simplificada para determinar la región basada en coordenadas
+
         if ($longitud >= -81 && $longitud <= -79 && $latitud >= -2.5 && $latitud <= 1.5) {
             return 'Costa';
         } elseif ($longitud >= -79 && $longitud <= -77 && $latitud >= -2.5 && $latitud <= 1.5) {
@@ -223,10 +223,10 @@ class DashboardController extends BaseController {
     private function getRegistrosHoy($tabla) {
         $ref = $this->database->getReference($tabla);
         $hoy = date('Y-m-d');
-        
+
         $snapshot = $ref->getSnapshot();
         $count = 0;
-        
+
         if ($snapshot->exists()) {
             foreach ($snapshot->getValue() as $item) {
                 $fechaRegistro = $item['fecha_registro'] ?? '';

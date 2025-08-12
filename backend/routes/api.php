@@ -70,7 +70,7 @@ if (preg_match('#^/api/especies/([^/]+)$#', $path, $matches)) {
     exit;
 }
 
-// ✅ RUTAS para usuarios
+//  RUTAS para usuarios
 if (preg_match('#^/api/usuarios/?$#', $path)) {
     require_once __DIR__ . '/../src/Controllers/UsuariosController.php';
     $controller = new UsuariosController();
@@ -78,7 +78,7 @@ if (preg_match('#^/api/usuarios/?$#', $path)) {
     exit;
 }
 
-// ✅ RUTA para usuario específico (opcional)
+//  RUTA para usuario específico (opcional)
 if (preg_match('#^/api/usuarios/([^/]+)$#', $path, $matches)) {
     require_once __DIR__ . '/../src/Controllers/UsuariosController.php';
     $controller = new UsuariosController();

@@ -1,11 +1,10 @@
 <div class="especies-container">
-  <!-- Header - ✅ ELIMINAR botón Nueva Especie -->
+
   <div class="header">
     <h2>🌿 Catálogo de Especies</h2>
     <div class="header-actions">
-      <!-- ❌ ELIMINAR: botón Nueva Especie - ahora se maneja en CatalogoComponent -->
       <button class="btn-secondary" (click)="refreshData()">
-        🔄 Actualizar
+         Actualizar
       </button>
     </div>
   </div>
@@ -13,14 +12,14 @@
   <!-- Búsqueda y Filtros -->
   <div class="filters">
     <div class="search-box">
-      <input 
-        type="text" 
-        placeholder="🔍 Buscar especies..." 
+      <input
+        type="text"
+        placeholder="🔍 Buscar especies..."
         [(ngModel)]="searchTerm"
         (input)="onSearch()"
         class="search-input">
     </div>
-    
+
     <div class="filter-group">
       <select [(ngModel)]="selectedFamilia" (change)="onFamiliaChange()" class="filter-select">
         <option value="">Todas las familias</option>
@@ -28,7 +27,7 @@
           {{ familia }}
         </option>
       </select>
-      
+
       <select [(ngModel)]="selectedEstado" (change)="onEstadoChange()" class="filter-select">
         <option value="">Todos los estados</option>
         <option value="Preocupación menor">Preocupación menor</option>
@@ -64,17 +63,17 @@
 
   <!-- Lista de Especies -->
   <div class="especies-grid" *ngIf="!loading">
-    <div 
-      *ngFor="let especie of especiesFiltradas; trackBy: trackByEspecie" 
+    <div
+      *ngFor="let especie of especiesFiltradas; trackBy: trackByEspecie"
       class="especie-card"
       [class.selected]="selectedEspecie?.id === especie.id"
       (click)="selectEspecie(especie)">
-      
+
       <div class="card-header">
         <h3 class="nombre-cientifico">{{ especie.nombre_cientifico }}</h3>
         <span class="familia">{{ especie.familia }}</span>
       </div>
-      
+
       <div class="card-image">
         <img
           *ngIf="especie.imagenes && especie.imagenes.length > 0"
@@ -98,33 +97,33 @@
           <strong>Estado:</strong> {{ especie.estado_conservacion }}
         </p>
         <p class="coordenadas" *ngIf="especie.coordenadas">
-          <strong>Ubicación:</strong> 
-          {{ especie.coordenadas.latitud | number:'1.4-4' }}, 
+          <strong>Ubicación:</strong>
+          {{ especie.coordenadas.latitud | number:'1.4-4' }},
           {{ especie.coordenadas.longitud | number:'1.4-4' }}
         </p>
         <p class="fecha-registro">
           <strong>Registrado:</strong> {{ especie.fecha_registro | date:'dd/MM/yyyy' }}
         </p>
       </div>
-      
-      <!-- ✅ MODIFICAR: Botones de acción -->
+
+
       <div class="card-actions">
-        <button 
-          class="btn-edit" 
+        <button
+          class="btn-edit"
           *ngIf="usuarioUid && especie.registrado_por === usuarioUid"
           (click)="onEditEspecie(especie); $event.stopPropagation()"
           title="Editar especie">
           Editar
         </button>
-        <button 
-          class="btn-delete" 
+        <button
+          class="btn-delete"
           *ngIf="usuarioUid && especie.registrado_por === usuarioUid"
           (click)="deleteEspecie(especie); $event.stopPropagation()"
           title="Eliminar especie">
           Eliminar
         </button>
-        <button 
-          class="btn-map" 
+        <button
+          class="btn-map"
           (click)="viewOnMap(especie); $event.stopPropagation()"
           title="Ver en mapa">
           Ver en Mapa
@@ -133,7 +132,7 @@
     </div>
   </div>
 
-  <!-- Empty State - ✅ ELIMINAR botón Nueva Especie -->
+
   <div *ngIf="!loading && especiesFiltradas.length === 0" class="empty-state">
     <div class="empty-icon">🌱</div>
     <h3>No se encontraron especies</h3>
@@ -150,10 +149,10 @@
   <!-- Botones de reporte -->
   <div class="report-button-container">
     <button class="btn-report" (click)="generateReport('csv')" title="Exportar a CSV">
-      📄 Exportar CSV
+      Exportar CSV
     </button>
     <button class="btn-report btn-pdf" (click)="generateReport('pdf')" title="Exportar a PDF">
-      📊 Exportar PDF
+      Exportar PDF
     </button>
   </div>
 </div>

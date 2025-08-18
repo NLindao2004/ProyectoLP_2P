@@ -3,6 +3,8 @@ import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-header',
+  standalone: true,
+  imports: [],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
@@ -13,5 +15,9 @@ export class HeaderComponent {
     localStorage.clear();
     sessionStorage.clear();
     this.router.navigate(['/login']);
+  }
+
+  irAInicio() {
+    this.router.navigate(['/home']);
   }
 }

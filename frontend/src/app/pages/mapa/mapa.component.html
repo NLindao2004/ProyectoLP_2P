@@ -14,7 +14,6 @@
           class="form-select">
           <option value="Todas">Todas las provincias</option>
 
-
           <optgroup label="Costa">
             <option value="Esmeraldas">Esmeraldas</option>
             <option value="Manabí">Manabí</option>
@@ -24,7 +23,6 @@
             <option value="El Oro">El Oro</option>
             <option value="Santo Domingo">Santo Domingo de los Tsáchilas</option>
           </optgroup>
-
 
           <optgroup label="Sierra">
             <option value="Carchi">Carchi</option>
@@ -39,7 +37,6 @@
             <option value="Loja">Loja</option>
           </optgroup>
 
-
           <optgroup label="Oriente">
             <option value="Sucumbíos">Sucumbíos</option>
             <option value="Orellana">Orellana</option>
@@ -48,7 +45,6 @@
             <option value="Morona Santiago">Morona Santiago</option>
             <option value="Zamora Chinchipe">Zamora Chinchipe</option>
           </optgroup>
-
 
           <optgroup label="Región Insular">
             <option value="Galápagos">Galápagos</option>
@@ -82,7 +78,7 @@
     <google-map
       [options]="mapOptions"
       [width]="'100%'"
-      [height]="'600px'">
+      [height]="'700px'">
 
       <!-- Markers de especies -->
       <map-marker
@@ -165,6 +161,65 @@
           {{ especieSeleccionada.coordenadas.latitud.toFixed(4) }},
           {{ especieSeleccionada.coordenadas.longitud.toFixed(4) }}
         </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRÁFICO DE PASTEL (al final) -->
+  <div class="estadisticas-seccion" *ngIf="!isLoading && !error && especies.length > 0">
+    <div class="estadisticas-header">
+      <h3> Distribución por Estado de Conservación</h3>
+      <p class="estadisticas-subtitle">Análisis de {{ totalEspecies }} especies registradas en Ecuador</p>
+    </div>
+
+    <div class="grafico-container">
+      <!-- Gráfico de pastel -->
+      <div class="pie-chart-wrapper">
+        <svg class="pie-chart" viewBox="0 0 200 200" [style.width.px]="280" [style.height.px]="280">
+          <!-- Círculo base -->
+          <circle cx="100" cy="100" r="85" fill="transparent" stroke="#f0f0f0" stroke-width="2"></circle>
+
+          <!-- Segmentos del gráfico -->
+          <g *ngFor="let segmento of segmentosPastel; let i = index">
+            <path
+              [attr.d]="segmento.path"
+              [attr.fill]="segmento.color"
+              [attr.stroke]="'#ffffff'"
+              [attr.stroke-width]="3"
+              class="pie-segment"
+              [attr.data-tooltip]="segmento.estado + ': ' + segmento.cantidad + ' especies (' + segmento.porcentaje.toFixed(1) + '%)'">
+            </path>
+          </g>
+
+          <!-- Círculo central para hacer efecto donut -->
+          <circle cx="100" cy="100" r="40" fill="white" stroke="#e0e0e0" stroke-width="3"></circle>
+
+          <!-- Texto central -->
+          <text x="100" y="92" text-anchor="middle" class="chart-total-label">TOTAL</text>
+          <text x="100" y="108" text-anchor="middle" class="chart-total-number">{{ totalEspecies }}</text>
+          <text x="100" y="120" text-anchor="middle" class="chart-total-subtitle">especies</text>
+        </svg>
+      </div>
+
+      <!-- Leyenda del gráfico -->
+      <div class="chart-legend">
+        <h4>Estados de Conservación</h4>
+        <div class="legend-list">
+          <div *ngFor="let item of estadisticasConservacion"
+               class="legend-item"
+               [class.legend-item-highlight]="item.cantidad > 0">
+            <div class="legend-color-box" [style.background-color]="item.color"></div>
+            <div class="legend-info">
+              <span class="legend-label">{{ item.estado }}</span>
+              <div class="legend-stats">
+                <span class="legend-count">{{ item.cantidad }}</span>
+                <span class="legend-percentage">{{ item.porcentaje.toFixed(1) }}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resumen estadístico -->
       </div>
     </div>
   </div>

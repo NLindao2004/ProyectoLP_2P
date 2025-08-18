@@ -1,7 +1,11 @@
 <header class="main-header">
   <div class="header-left">
     <img src="/Icon_TerraVerde.png" alt="TerraVerde" class="header-logo">
-    <span class="header-title"> TerraVerde</span>
+    <span class="header-title">TerraVerde</span>
   </div>
-  <button class="logout-btn" (click)="logout()">Cerrar sesión</button>
+
+  <div class="header-buttons">
+    <button class="inicio-btn" (click)="irAInicio()">Inicio</button>
+    <button class="logout-btn" (click)="logout()">Cerrar sesión</button>
+  </div>
 </header>

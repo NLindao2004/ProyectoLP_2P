@@ -1,5 +1,5 @@
 /* filepath: c:\Users\Abeni\OneDrive\Documentos\Archivos ESPOL\Septimo Semestre\Lenguajes de Programacion\Proyectos\ProyectoLP_2P\frontend\src\app\pages\mapa\mapa.component.scss */
-// Import the same styles from home component
+// ✅ MANTENER TODO EL DISEÑO ORIGINAL
 .mapa-container {
   padding: 20px;
   height: 100vh;
@@ -58,7 +58,6 @@
     font-weight: 500;
   }
 
-  // ✅ NUEVO BADGE para mostrar provincia seleccionada
   .province-badge {
     background: #007bff;
     color: white;
@@ -123,6 +122,7 @@
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-height: 700px;
 }
 
 .leyenda {
@@ -161,16 +161,15 @@
     border: 2px solid white;
     box-shadow: 0 1px 3px rgba(0,0,0,0.3);
 
-    // ✅ COLORES EXACTOS que coinciden con los iconos SVG
-    &.rojo { background: #dc3545; }           // Peligro crítico
-    &.naranja { background: #fd7e14; }        // En peligro
-    &.amarillo { background: #ffc107; }       // Casi amenazado
-    &.azul { background: #007bff; }           // Vulnerable
-    &.verde { background: #28a745; }          // Preocupación menor
-    &.rosado { background: #e91e63; }         // Extinto
-    &.celeste { background: #17a2b8; }        // Extinto en estado silvestre
-    &.morado { background: #6f42c1; }         // Datos insuficientes
-    &.gris { background: #6c757d; }           // No evaluado
+    &.rojo { background: #dc3545; }
+    &.naranja { background: #fd7e14; }
+    &.amarillo { background: #ffc107; }
+    &.azul { background: #007bff; }
+    &.verde { background: #28a745; }
+    &.rosado { background: #e91e63; }
+    &.celeste { background: #17a2b8; }
+    &.morado { background: #6f42c1; }
+    &.gris { background: #6c757d; }
   }
 
   span:last-child {
@@ -245,9 +244,202 @@
   }
 }
 
+// ✅ NUEVOS ESTILOS PARA EL GRÁFICO DE PASTEL (al final)
+.estadisticas-seccion {
+  margin-top: 25px;
+  padding: 25px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  border: 2px solid #dee2e6;
+
+  .estadisticas-header {
+    text-align: center;
+    margin-bottom: 110px;
+
+    h3 {
+      color: #2d5016;
+      margin: 0 0 10px 0;
+      font-size: 2.8rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .estadisticas-subtitle {
+      color: #666;
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 400;
+    }
+  }
+
+  .grafico-container {
+    display: grid;
+    grid-template-columns: 700px 1fr;  // ✅ Auto para el gráfico, 1fr para la leyenda
+    gap: 60px;  // ✅ Más espacio entre gráfico y leyenda
+    align-items: flex-start;
+
+    @media (max-width: 992px) {
+      grid-template-columns: 1fr;
+      gap: 35px;
+      text-align: center;
+    }
+  }
+
+  .pie-chart-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .pie-chart {
+      margin-top: -50px;
+      width: 500px !important;   // De 320px a 400px
+      height: 500px !important;  // De 320px a 400px
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,0.15));
+
+      .pie-segment {
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &:hover {
+          filter: brightness(1.15);
+          transform-origin: center;
+        }
+      }
+
+      .chart-total-label {
+        font-size: 10px;
+        font-weight: 700;
+        fill: #666;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+      }
+
+      .chart-total-number {
+        font-size: 20px;  // ✅ Texto más grande para círculo más grande
+        font-weight: 900;
+        fill: #2d5016;
+      }
+
+      .chart-total-subtitle {
+        font-size: 11px;
+        font-weight: 600;
+        fill: #888;
+        text-transform: lowercase;
+      }
+    }
+  }
+
+  .chart-legend {
+    // ✅ MOVER LA LEYENDA MÁS A LA DERECHA Y HACERLA MÁS ESPACIOSA
+    padding-left: 20px;  // Separar más de la izquierda
+
+    h4 {
+      color: #2d5016;
+      margin: 0 0 30px 0;  // ✅ Más espacio debajo del título
+      font-size: 2.4rem;   // ✅ Título más grande
+      font-weight: 700;
+    }
+
+    .legend-list {
+      margin-bottom: 0;  // ✅ Sin margen inferior ya que no hay resumen
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 18px;  // ✅ Más espacio entre color y texto
+      padding: 15px 0;  // ✅ Más padding vertical
+      border-bottom: 1px solid #e9ecef;
+      transition: all 0.2s ease;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &.legend-item-highlight {
+        &:hover {
+          background-color: #f8f9fa;
+          padding-left: 15px;  // ✅ Más desplazamiento en hover
+          padding-right: 15px;
+          border-radius: 10px;
+        }
+      }
+
+      .legend-color-box {
+        width: 20px;   // ✅ Cuadros de color más grandes
+        height: 20px;
+        border-radius: 4px;
+        border: 3px solid white;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        flex-shrink: 0;
+      }
+
+      .legend-info {
+        flex: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .legend-label {
+          font-weight: 400;
+          color: #333;
+          font-size: 26px;  // ✅ Texto más grande
+        }
+
+        .legend-stats {
+          display: flex;
+          gap: 15px;  // ✅ Más espacio entre cantidad y porcentaje
+          font-size: 20px;  // ✅ Números más grandes
+
+          .legend-count {
+            font-weight: 700;
+            color: #2d5016;
+            background: #e8f5e9;
+            padding: 6px 12px;  // ✅ Más padding
+            border-radius: 18px;  // ✅ Más redondeado
+            border: 1px solid #c8e6c9;
+            min-width: 35px;
+            text-align: center;
+          }
+
+          .legend-percentage {
+            color: #666;
+            font-weight: 700;
+            min-width: 50px;  // ✅ Más ancho para alineación
+            text-align: right;
+          }
+        }
+      }
+    }
+
+    // ✅ ELIMINAR TODOS LOS ESTILOS DEL stats-summary
+    // .stats-summary { ... } <- TODO ELIMINADO
+  }
+}
+
+// ✅ ANIMACIONES PARA EL GRÁFICO
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+@keyframes pieSliceIn {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.pie-segment {
+  animation: pieSliceIn 0.8s ease-out forwards;
 }
 
 // Responsive
@@ -282,6 +474,38 @@
       display: inline-flex;
       margin-right: 15px;
       margin-bottom: 8px;
+    }
+  }
+
+  .estadisticas-seccion {
+    padding: 20px;
+    margin-top: 20px;
+
+    .estadisticas-header h3 {
+      font-size: 1.5rem;
+    }
+
+    .grafico-container {
+      gap: 30px;
+    }
+
+    .pie-chart-wrapper .pie-chart {
+      width: 280px !important;  // ✅ Más pequeño en móvil
+      height: 280px !important;
+    }
+
+    .chart-legend {
+      padding-left: 0;
+
+      .legend-item {
+        padding: 12px 0;
+        gap: 15px;
+      }
+
+      .legend-stats {
+        flex-direction: row;  // ✅ Mantener horizontal en móvil
+        gap: 10px;
+      }
     }
   }
 }

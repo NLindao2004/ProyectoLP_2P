@@ -26,11 +26,16 @@
   ],
   "authors": [
     "Benites Alex",
-    "Lindao Nehemias", 
+    "Lindao Nehemias",
     "Zavala Fernando"
   ],
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^8.2.2"
+  },
+  "dependencies": {
+    "@types/chart.js": "^2.9.41",
+    "chart.js": "^4.5.0",
+    "ng2-charts": "^8.0.0"
   }
 }

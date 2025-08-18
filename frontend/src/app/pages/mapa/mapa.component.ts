@@ -5,6 +5,22 @@ import { GoogleMapsModule, GoogleMap, MapMarker } from '@angular/google-maps';
 import { EspeciesService } from '../../services/especies.service';
 import { Especie } from '../../models/especies.model';
 import { HeaderComponent } from '../header/header.component';
+
+interface EstadisticaConservacion {
+  estado: string;
+  cantidad: number;
+  porcentaje: number;
+  color: string;
+}
+
+interface SegmentoPastel {
+  estado: string;
+  cantidad: number;
+  porcentaje: number;
+  path: string;
+  color: string;
+}
+
 interface ProvinciaInfo {
   name: string;
   center: google.maps.LatLngLiteral;
@@ -27,7 +43,6 @@ interface ProvinciaInfo {
 export class MapaComponent implements OnInit {
   @ViewChild(GoogleMap) map!: GoogleMap;
 
-  // Configuración del mapa
   mapOptions: google.maps.MapOptions = {
     center: { lat: -1.831239, lng: -78.183406 },
     zoom: 7,
@@ -46,10 +61,15 @@ export class MapaComponent implements OnInit {
     ]
   };
 
-
   especies: Especie[] = [];
   especiesFiltradas: Especie[] = [];
 
+  estadisticasConservacion: EstadisticaConservacion[] = [];
+  segmentosPastel: SegmentoPastel[] = [];
+  totalEspecies = 0;
+  especiesEnRiesgo = 0;
+  especiesEstables = 0;
+  especiesNoEvaluadas = 0;
 
   provincias: ProvinciaInfo[] = [
     {
@@ -154,7 +174,6 @@ export class MapaComponent implements OnInit {
       zoom: 10,
       bounds: { north: -2.16, south: -2.96, east: -78.16, west: -79.67 }
     },
-    // ORIENTE
     {
       name: 'Pastaza',
       center: { lat: -1.4869, lng: -77.9958 },
@@ -191,7 +210,6 @@ export class MapaComponent implements OnInit {
       zoom: 9,
       bounds: { north: -0.42, south: -1.55, east: -76.0, west: -78.97 }
     },
-    // GALÁPAGOS
     {
       name: 'Galápagos',
       center: { lat: -0.7893, lng: -90.9542 },
@@ -200,11 +218,8 @@ export class MapaComponent implements OnInit {
     }
   ];
 
-  // Filtros
   provinciaSeleccionada: string = 'Todas';
   especieSeleccionada: Especie | null = null;
-
-  // Estado del mapa
   isLoading = true;
   error: string = '';
   markers: any[] = [];
@@ -230,6 +245,10 @@ export class MapaComponent implements OnInit {
       if (response && response.success && response.data && response.data.especies) {
         this.especies = response.data.especies;
         this.aplicarFiltros();
+
+        this.calcularEstadisticas();
+        this.generarGraficoPastel();
+
         console.log('✅ Especies cargadas desde Firebase:', this.especies.length);
         console.log('🗺️ Especies con coordenadas:', this.especies.filter(e => e.coordenadas?.latitud && e.coordenadas?.longitud).length);
       } else {
@@ -259,7 +278,7 @@ export class MapaComponent implements OnInit {
         estado_conservacion: 'En peligro',
         habitat: 'Bosque Nublado',
         descripcion: 'Ave emblemática de los bosques nublados',
-        coordenadas: { latitud: -0.1807, longitud: -78.4678 }, // Quito
+        coordenadas: { latitud: -0.1807, longitud: -78.4678 },
         fecha_registro: new Date().toISOString(),
         registrado_por: 'sistema',
         activo: true
@@ -272,7 +291,7 @@ export class MapaComponent implements OnInit {
         estado_conservacion: 'Vulnerable',
         habitat: 'Costero',
         descripcion: 'Única iguana marina del mundo',
-        coordenadas: { latitud: -0.7893, longitud: -90.9542 }, // Galápagos
+        coordenadas: { latitud: -0.7893, longitud: -90.9542 },
         fecha_registro: new Date().toISOString(),
         registrado_por: 'sistema',
         activo: true
@@ -285,7 +304,7 @@ export class MapaComponent implements OnInit {
         estado_conservacion: 'Preocupación menor',
         habitat: 'Humedales',
         descripcion: 'Ave acuática de humedales costeros',
-        coordenadas: { latitud: -2.1962, longitud: -79.8862 }, // Guayaquil
+        coordenadas: { latitud: -2.1962, longitud: -79.8862 },
         fecha_registro: new Date().toISOString(),
         registrado_por: 'sistema',
         activo: true
@@ -298,13 +317,103 @@ export class MapaComponent implements OnInit {
         estado_conservacion: 'Casi amenazado',
         habitat: 'Selva Tropical',
         descripcion: 'Felino más grande de América',
-        coordenadas: { latitud: -1.4869, longitud: -77.9958 }, // Pastaza
+        coordenadas: { latitud: -1.4869, longitud: -77.9958 },
         fecha_registro: new Date().toISOString(),
         registrado_por: 'sistema',
         activo: true
       }
     ];
     this.aplicarFiltros();
+
+    this.calcularEstadisticas();
+    this.generarGraficoPastel();
+  }
+
+  calcularEstadisticas(): void {
+    const conteos: {[key: string]: number} = {};
+
+    this.especies.forEach(especie => {
+      const estado = this.normalizarEstadoConservacion(especie.estado_conservacion || 'No evaluado');
+      conteos[estado] = (conteos[estado] || 0) + 1;
+    });
+
+    this.totalEspecies = this.especies.length;
+
+    const estadosOrdenados = [
+      'Peligro crítico',
+      'En peligro',
+      'Vulnerable',
+      'Casi amenazado',
+      'Preocupación menor',
+      'Extinto',
+      'Extinto en estado silvestre',
+      'Datos insuficientes',
+      'No evaluado'
+    ];
+
+    this.estadisticasConservacion = estadosOrdenados.map(estado => {
+      const cantidad = conteos[estado] || 0;
+      const porcentaje = this.totalEspecies > 0 ? (cantidad / this.totalEspecies) * 100 : 0;
+
+      return {
+        estado,
+        cantidad,
+        porcentaje,
+        color: this.getStatusColor(estado)
+      };
+    }).filter(item => item.cantidad > 0);
+
+    this.especiesEnRiesgo = (conteos['En peligro'] || 0) +
+                           (conteos['Peligro crítico'] || 0) +
+                           (conteos['Vulnerable'] || 0) +
+                           (conteos['Casi amenazado'] || 0) +
+                           (conteos['Extinto'] || 0) +
+                           (conteos['Extinto en estado silvestre'] || 0);
+
+    this.especiesEstables = conteos['Preocupación menor'] || 0;
+
+    this.especiesNoEvaluadas = (conteos['No evaluado'] || 0) +
+                              (conteos['Datos insuficientes'] || 0);
+  }
+
+  generarGraficoPastel(): void {
+    let anguloAcumulado = 0;
+    const radio = 85;
+    const centroX = 100;
+    const centroY = 100;
+
+    this.segmentosPastel = this.estadisticasConservacion.map(item => {
+      const anguloSegmento = (item.porcentaje / 100) * 360;
+      const anguloInicio = anguloAcumulado;
+      const anguloFin = anguloAcumulado + anguloSegmento;
+
+      const radianes1 = (anguloInicio * Math.PI) / 180;
+      const radianes2 = (anguloFin * Math.PI) / 180;
+
+      const x1 = centroX + radio * Math.cos(radianes1);
+      const y1 = centroY + radio * Math.sin(radianes1);
+      const x2 = centroX + radio * Math.cos(radianes2);
+      const y2 = centroY + radio * Math.sin(radianes2);
+
+      const arcoGrande = anguloSegmento > 180 ? 1 : 0;
+
+      const path = [
+        `M ${centroX} ${centroY}`,
+        `L ${x1} ${y1}`,
+        `A ${radio} ${radio} 0 ${arcoGrande} 1 ${x2} ${y2}`,
+        'Z'
+      ].join(' ');
+
+      anguloAcumulado += anguloSegmento;
+
+      return {
+        estado: item.estado,
+        cantidad: item.cantidad,
+        porcentaje: item.porcentaje,
+        path,
+        color: item.color
+      };
+    });
   }
 
   aplicarFiltros(): void {
@@ -320,11 +429,9 @@ export class MapaComponent implements OnInit {
     this.actualizarMarkers();
   }
 
-  // ✅ NUEVA FUNCIÓN: Determinar provincia por coordenadas
   determinarProvinciaPorCoordenadas(lat: number, lng: number): string {
     if (lat === 0 && lng === 0) return 'Sin ubicación';
 
-    // Buscar en qué provincia están las coordenadas
     for (const provincia of this.provincias) {
       const bounds = provincia.bounds;
       if (lat <= bounds.north && lat >= bounds.south &&
@@ -336,7 +443,6 @@ export class MapaComponent implements OnInit {
     return 'Fuera de Ecuador';
   }
 
-  // ✅ FUNCIÓN ACTUALIZADA: Cambio de provincia
   async onProvinciaChange(provincia: string): Promise<void> {
     this.provinciaSeleccionada = provincia;
 
@@ -345,10 +451,8 @@ export class MapaComponent implements OnInit {
         this.isLoading = true;
         console.log(`🔄 Filtrando especies de provincia: ${provincia}`);
 
-        // Aplicar filtro local por coordenadas
         this.aplicarFiltros();
 
-        // Centrar mapa en la provincia seleccionada
         const provinciaInfo = this.provincias.find(p => p.name === provincia);
         if (provinciaInfo && this.map) {
           this.map.panTo(provinciaInfo.center);
@@ -365,7 +469,7 @@ export class MapaComponent implements OnInit {
     } else {
       console.log('🗺️ Mostrando todas las provincias');
       this.aplicarFiltros();
-      this.map?.panTo({ lat: -1.831239, lng: -78.183406 }); // Centro de Ecuador
+      this.map?.panTo({ lat: -1.831239, lng: -78.183406 });
       if (this.map) {
         this.map.zoom = 7;
       }
@@ -380,7 +484,6 @@ export class MapaComponent implements OnInit {
       let lat = especie.coordenadas!.latitud;
       let lng = especie.coordenadas!.longitud;
 
-      // Separar especies en ubicaciones muy cercanas
       const especiesCercanas = especiesConCoordenadas.filter(e =>
         Math.abs(e.coordenadas.latitud - lat) < 0.001 &&
         Math.abs(e.coordenadas.longitud - lng) < 0.001
@@ -413,7 +516,52 @@ export class MapaComponent implements OnInit {
     console.log(`📍 Marcadores creados: ${this.markers.length}`);
   }
 
+  private normalizarEstadoConservacion(estado: string): string {
+    if (!estado) return 'No evaluado';
+
+    const estadoLower = estado.toLowerCase().trim();
+
+    // Mapear diferentes variaciones al formato estándar
+    const mapeoEstados: {[key: string]: string} = {
+      'peligro critico': 'Peligro crítico',
+      'peligro crítico': 'Peligro crítico',
+      'en peligro critico': 'Peligro crítico',
+      'en peligro crítico': 'Peligro crítico',
+      'critico': 'Peligro crítico',
+      'crítico': 'Peligro crítico',
+
+      'en peligro': 'En peligro',
+      'peligro': 'En peligro',
+
+      'vulnerable': 'Vulnerable',
+
+      'casi amenazado': 'Casi amenazado',
+      'casi amenazada': 'Casi amenazado',
+
+      'preocupacion menor': 'Preocupación menor',
+      'preocupación menor': 'Preocupación menor',
+      'menor preocupacion': 'Preocupación menor',
+      'menor preocupación': 'Preocupación menor',
+
+      'no evaluado': 'No evaluado',
+      'sin evaluar': 'No evaluado',
+
+      'extinto': 'Extinto',
+      'extinta': 'Extinto',
+
+      'extinto en estado silvestre': 'Extinto en estado silvestre',
+      'extinta en estado silvestre': 'Extinto en estado silvestre',
+
+      'datos insuficientes': 'Datos insuficientes',
+      'insuficientes datos': 'Datos insuficientes'
+    };
+
+    return mapeoEstados[estadoLower] || estado;
+  }
+
   getMarkerIcon(status: string): string {
+    const estadoNormalizado = this.normalizarEstadoConservacion(status);
+
     const createSVGIcon = (color: string, borderColor: string = '#ffffff'): string => {
       const svg = `
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
@@ -425,19 +573,20 @@ export class MapaComponent implements OnInit {
     };
 
     const colors: {[key: string]: string} = {
-      'En peligro': '#fd7e14',
-      'Preocupación menor': '#28a745',
       'Peligro crítico': '#dc3545',
+      'En peligro': '#fd7e14',
       'Vulnerable': '#007bff',
-      'No evaluado': '#6c757d',
-      'Extinto': '#e91e63',
       'Casi amenazado': '#ffc107',
+      'Preocupación menor': '#28a745',
+      'Extinto': '#e91e63',
+      'Extinto en estado silvestre': '#17a2b8',
       'Datos insuficientes': '#6f42c1',
-      'Extinto en estado silvestre': '#17a2b8'
+      'No evaluado': '#6c757d'
     };
 
-    const color = colors[status] || '#6c757d';
-    console.log(`🎨 Estado: "${status}" -> Color SVG: ${color}`);
+    const color = colors[estadoNormalizado] || '#6c757d';
+
+    console.log(`🎨 Estado original: "${status}" -> Normalizado: "${estadoNormalizado}" -> Color: ${color}`);
 
     return createSVGIcon(color);
   }
@@ -445,19 +594,21 @@ export class MapaComponent implements OnInit {
   getStatusColor(status: string | undefined): string {
     if (!status) return '#6c757d';
 
+    const estadoNormalizado = this.normalizarEstadoConservacion(status);
+
     const colors: {[key: string]: string} = {
-      'En peligro': '#fd7e14',
-      'Preocupación menor': '#28a745',
       'Peligro crítico': '#dc3545',
+      'En peligro': '#fd7e14',
       'Vulnerable': '#007bff',
-      'No evaluado': '#6c757d',
-      'Extinto': '#e91e63',
       'Casi amenazado': '#ffc107',
+      'Preocupación menor': '#28a745',
+      'Extinto': '#e91e63',
+      'Extinto en estado silvestre': '#17a2b8',
       'Datos insuficientes': '#6f42c1',
-      'Extinto en estado silvestre': '#17a2b8'
+      'No evaluado': '#6c757d'
     };
 
-    return colors[status] || '#6c757d';
+    return colors[estadoNormalizado] || '#6c757d';
   }
 
   onMarkerClick(marker: any): void {
@@ -484,7 +635,6 @@ export class MapaComponent implements OnInit {
       }, {} as {[key: string]: number});
 
       console.log('📊 Conteo por estado:', conteo);
-
 
       const conteoPorProvincia = this.especies.reduce((acc, especie) => {
         const provincia = this.determinarProvinciaPorCoordenadas(especie.coordenadas.latitud, especie.coordenadas.longitud);

@@ -1,74 +1,144 @@
-<div class="detalle-container" *ngIf="especie">
-  <button class="btn-volver" (click)="goBack()">← Volver</button>
-  
-  <div class="detalle-main">
-    <!-- Lado izquierdo: Info de la especie -->
-    <div class="detalle-info">
-      <h2>{{ especie.nombre_cientifico }}</h2>
-      <div class="detalle-imagenes">
-        <img *ngFor="let img of especie.imagenes" [src]="img.url" [alt]="img.nombre || especie.nombre_cientifico" />
-      </div>
-      <p><strong>Nombre vulgar:</strong> {{ especie.nombre_vulgar }}</p>
-      <p><strong>Familia:</strong> {{ especie.familia }}</p>
-      <p><strong>Estado de conservación:</strong> {{ especie.estado_conservacion }}</p>
-      <p><strong>Hábitat:</strong> {{ especie.habitat }}</p>
-      <p><strong>Descripción:</strong> {{ especie.descripcion }}</p>
-      <p><strong>Ubicación:</strong> {{ especie.coordenadas.latitud }}, {{ especie.coordenadas.longitud }}</p>
-      <p><strong>Registrado por:</strong> {{ especie.registrado_por }}</p>
-      <p><strong>Fecha de registro:</strong> {{ especie.fecha_registro | date:'dd/MM/yyyy HH:mm' }}</p>
-    </div>
-    <!-- Lado derecho: Mapa -->
-    <div class="detalle-mapa">
-      <div class="map-placeholder">
-        <p>Mapa de la ubicación</p>
-        <img 
-          *ngIf="especie.coordenadas"
-          [src]="'https://maps.googleapis.com/maps/api/staticmap?center=' + especie.coordenadas.latitud + ',' + especie.coordenadas.longitud + '&zoom=10&size=300x200&markers=color:red|' + especie.coordenadas.latitud + ',' + especie.coordenadas.longitud + '&key=AIzaSyDFMwz7hhgfTzREBS8F_ctBfhz4L8dFyBQ'"
-          alt="Mapa de la especie"
-        />
-      </div>
-    </div>
+<app-header></app-header>
+
+<div class="detalle-container">
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Cargando información de la especie...</p>
   </div>
-  
-  <!-- Zona de comentarios -->
-  <div class="detalle-comentarios">
-    <h3>Comentarios ({{especie.comentarios?.length || 0}})</h3>
-    
-    <!-- Formulario para agregar comentarios -->
-    <div class="comentario-form-container">
-      <div class="comentario-form">
-        <h4>Agregar comentario</h4>
-        <form (ngSubmit)="agregarComentario()" #comentarioForm="ngForm">
-          <div class="form-group">
-            <label for="autor">Nombre (opcional):</label>
-            <input type="text" id="autor" name="autor" [(ngModel)]="nuevoComentario.autor" 
-                   placeholder="Tu nombre o anónimo">
+
+  <!-- Error -->
+  <div *ngIf="error && !isLoading" class="error-container">
+    <h3>❌ Error</h3>
+    <p>{{ error }}</p>
+    <button (click)="volverAlCatalogo()" class="btn btn-secondary">
+      🔙 Volver al Catálogo
+    </button>
+  </div>
+
+  <!-- ✅ CONTENIDO PRINCIPAL (combinando ambos diseños) -->
+  <div *ngIf="especie && !isLoading">
+    <button class="btn-volver" (click)="volverAlCatalogo()">← Volver</button>
+
+    <div class="detalle-main">
+      <!-- Lado izquierdo: Info de la especie -->
+      <div class="detalle-info">
+        <h2>{{ especie.nombre_cientifico }}</h2>
+
+        <!-- Imágenes (si existen) -->
+        <div class="detalle-imagenes" *ngIf="especie.imagenes && especie.imagenes.length > 0">
+          <img *ngFor="let img of especie.imagenes" [src]="img.url" [alt]="img.nombre || especie.nombre_cientifico" />
+        </div>
+
+        <p><strong>Nombre vulgar:</strong> {{ especie.nombre_vulgar }}</p>
+        <p><strong>Familia:</strong> {{ especie.familia }}</p>
+        <p><strong>Estado de conservación:</strong>
+          <span class="status-badge" [style.background-color]="getStatusColor(especie.estado_conservacion)">
+            {{ especie.estado_conservacion }}
+          </span>
+        </p>
+        <p><strong>Hábitat:</strong> {{ especie.habitat }}</p>
+        <p><strong>Descripción:</strong> {{ especie.descripcion }}</p>
+
+        <!-- Coordenadas mejoradas -->
+        <div *ngIf="especie.coordenadas" class="coordenadas-info">
+          <strong>Ubicación:</strong>
+          <div class="coordinates-display">
+            <span class="coordinate">{{ especie.coordenadas.latitud.toFixed(4) }}°</span>
+            <span class="separator">,</span>
+            <span class="coordinate">{{ especie.coordenadas.longitud.toFixed(4) }}°</span>
           </div>
-          <div class="form-group">
-            <label for="texto">Comentario:</label>
-            <textarea id="texto" name="texto" [(ngModel)]="nuevoComentario.texto" 
-                      required placeholder="Escribe tu comentario aquí..."></textarea>
+          <small class="region-info">
+            📍 {{ determinarProvincia(especie.coordenadas.latitud, especie.coordenadas.longitud) }}
+          </small>
+        </div>
+
+        <p><strong>Registrado por:</strong> {{ especie.registrado_por }}</p>
+        <p><strong>Fecha de registro:</strong> {{ especie.fecha_registro | date:'dd/MM/yyyy HH:mm' }}</p>
+      </div>
+
+      <!-- ✅ MAPA INTERACTIVO MEJORADO -->
+      <div class="detalle-mapa">
+        <div class="map-container">
+          <p class="map-title">🗺️ Ubicación en el mapa</p>
+
+          <!-- Mapa interactivo -->
+          <div *ngIf="showMap && especie.coordenadas" class="interactive-map">
+            <google-map
+              [options]="mapOptions"
+              [width]="'100%'"
+              [height]="'280px'">
+
+              <map-marker
+                [position]="markerPosition"
+                [title]="especie.nombre_vulgar + ' (' + especie.estado_conservacion + ')'"
+                [options]="markerOptions"
+                (mapClick)="onMarkerClick()">
+              </map-marker>
+            </google-map>
+
+            <!-- Leyenda del mapa -->
+            <div class="map-legend">
+              <span class="legend-dot" [style.background-color]="getStatusColor(especie.estado_conservacion)"></span>
+              <span class="legend-text">{{ especie.estado_conservacion }}</span>
+            </div>
           </div>
-          <button type="submit" [disabled]="!comentarioForm.form.valid || enviandoComentario">
-            <span *ngIf="!enviandoComentario">Enviar comentario</span>
-            <span *ngIf="enviandoComentario">Enviando...</span>
-          </button>
-          <div *ngIf="errorComentario" class="error-message">
-            {{ errorComentario }}
+
+          <!-- Loading del mapa -->
+          <div *ngIf="especie.coordenadas && !showMap" class="map-loading">
+            <div class="map-spinner"></div>
+            <p>Cargando mapa...</p>
           </div>
-        </form>
+
+          <!-- Sin coordenadas -->
+          <div *ngIf="!especie.coordenadas" class="no-location">
+            <span class="location-icon">📍</span>
+            <p>Sin ubicación registrada</p>
+          </div>
+        </div>
       </div>
     </div>
-    <br>
-    
-    <!-- Lista de comentarios -->
-    <div class="comentarios-lista" *ngIf="especie.comentarios && especie.comentarios.length > 0">
-      <div class="comentario-item" *ngFor="let comentario of especie.comentarios">
-        <div class="comentario-header">
-          <span class="comentario-autor">{{ comentario.autor || 'Anónimo' }}</span>
-          <span class="comentario-fecha">{{ comentario.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+
+    <!-- ✅ ZONA DE COMENTARIOS (restaurada del diseño original) -->
+    <div class="detalle-comentarios">
+      <h3>Comentarios ({{especie.comentarios?.length || 0}})</h3>
+
+      <!-- Formulario para agregar comentarios -->
+      <div class="comentario-form-container">
+        <div class="comentario-form">
+          <h4>Agregar comentario</h4>
+          <form (ngSubmit)="agregarComentario()" #comentarioForm="ngForm">
+            <div class="form-group">
+              <label for="autor">Nombre (opcional):</label>
+              <input type="text" id="autor" name="autor" [(ngModel)]="nuevoComentario.autor"
+                     placeholder="Tu nombre o anónimo">
+            </div>
+            <div class="form-group">
+              <label for="texto">Comentario:</label>
+              <textarea id="texto" name="texto" [(ngModel)]="nuevoComentario.texto"
+                        required placeholder="Escribe tu comentario aquí..."></textarea>
+            </div>
+            <button type="submit" [disabled]="!comentarioForm.form.valid || enviandoComentario">
+              <span *ngIf="!enviandoComentario">Enviar comentario</span>
+              <span *ngIf="enviandoComentario">Enviando...</span>
+            </button>
+            <div *ngIf="errorComentario" class="error-message">
+              {{ errorComentario }}
+            </div>
+          </form>
         </div>
-        <div class="comentario-texto">{{ comentario.texto }}</div>
+      </div>
+      <br>
+
+      <!-- Lista de comentarios -->
+      <div class="comentarios-lista" *ngIf="especie.comentarios && especie.comentarios.length > 0">
+        <div class="comentario-item" *ngFor="let comentario of especie.comentarios">
+          <div class="comentario-header">
+            <span class="comentario-autor">{{ comentario.autor || 'Anónimo' }}</span>
+            <span class="comentario-fecha">{{ comentario.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="comentario-texto">{{ comentario.texto }}</div>
+        </div>
       </div>
     </div>
   </div>

@@ -2,12 +2,12 @@
 
 ## Descripción del Proyecto
 
-Terraverde es una plataforma web para el registro y catalogación de especies en ecosistemas terrestres y acuáticos. Permite a biólogos, investigadores, estudiantes y ciudadanos documentar y catalogar especies encontradas en bosques, lagos y playas.
+Terraverde es una plataforma web para el registro y catalogación de especies en ecosistemas terrestres y acuáticos. Permite documentar y catalogar especies encontradas en bosques, lagos, playas, etc.
 
 ## Integrantes del Grupo
 - **Benites Alex** - Galería interactiva e interfaz de mapas
 - **Lindao Nehemias** - Registro de especies y consulta de catálogo  
-- **Zavala Fernando** - PWA y generación de reportes
+- **Zavala Fernando** - Sección de comentarios y generación de reportes
 
 ## Arquitectura del Proyecto
 
@@ -17,7 +17,7 @@ Terraverde es una plataforma web para el registro y catalogación de especies en
 - **Ubicación**: `/frontend`
 
 ### Backend  
-- **Framework**: PHP 8+ con Laravel
+- **Framework**: PHP 8+ 
 - **API**: REST API para comunicación con frontend
 - **Ubicación**: `/backend`
 
@@ -44,10 +44,10 @@ ProyectoLP_2P/
 │   │   ├── Http/Controllers/ # Controladores API
 │   │   ├── Models/           # Modelos Eloquent
 │   │   └── Services/         # Servicios Firebase
+│   ├── .env                  # Configuracion Firebase
 │   ├── routes/               # Rutas API
-│   └── config/               # Configuraciones
-├── docs/                     # Documentación
-└── firebase/                 # Configuración Firebase
+│   └── config/               # Configuraciones                
+└── gitignore/              
 ```
 
 ## Instalación y Configuración
@@ -71,94 +71,51 @@ ProyectoLP_2P/
    npm run install-all
    ```
 
-3. **Configurar Firebase**
-   - Crear proyecto en Firebase Console
-   - Configurar Firestore Database
-   - Configurar Firebase Storage
-   - Obtener las credenciales de configuración
-
-4. **Configurar variables de entorno**
-   - Frontend: `frontend/src/environments/environment.ts`
-   - Backend: `backend/.env`
-
-### Ejecución en Desarrollo
+### Pasos para ejecutar el proyecto
 
 ```bash
-# Ejecutar frontend y backend simultáneamente
-npm run dev
+# Comandos backend, debe de estar en la carpeta /backend
+composer install
+php -S localhost:8000 -t public/
 
-# O ejecutar por separado:
-npm run start-frontend  # Puerto 4200
-npm run start-backend   # Puerto 8000
+# Comandos frontend, debe de estar en la carpeta /frontend
+npm install #(si no ha instalado las dependencias previamente)
+ng serve
 ```
 
 ## Funcionalidades Principales
 
-### 🌱 Registro de Especies
+### Registro de Especies
 - Formulario intuitivo para registrar especies
 - Carga de múltiples fotografías
 - Geolocalización con Google Maps
 - Datos taxonómicos completos
 
-### 🔍 Catálogo Interactivo
+### Catálogo Interactivo
 - Búsqueda y filtrado avanzado
-- Vista por ecosistema (bosque, lago, playa)
 - Detalles completos de cada especie
-- Galería de imágenes con zoom
+- Galería de imágenes 
 
-### 📊 Sistema de Reportes
+### Sistema de Reportes
 - Exportación en CSV y PDF
 - Análisis por región geográfica
-- Estadísticas de biodiversidad
 - Filtros personalizables
 
-### 🗺️ Mapas Interactivos
+### Mapas Interactivos
 - Visualización de avistamientos
 - Filtros geográficos
 - Integración con Google Maps API
 
-### 📱 PWA (Progressive Web App)
-- Instalación en dispositivos
-- Funcionamiento offline
-- Caché inteligente
-- Responsive design
+### Sección de comentarios 
+- Enviar comentarios en cada especie registrada
+- Visualización de comentarios de otros usuarios 
+
 
 ## APIs y Servicios Externos
 
 - **Google Maps API**: Geolocalización y mapas
 - **Firebase Services**: Base de datos, storage y autenticación
-- **Cloudinary** (opcional): Optimización de imágenes
 
-## Tecnologías Utilizadas
-
-### Frontend
-- Angular 17+
-- TypeScript
-- Angular Material
-- PWA Service Worker
-- Google Maps API
-
-### Backend
-- PHP 8+
-- Laravel Framework
-- Firebase SDK
-- JWT Authentication
-
-### Base de Datos
-- Firebase Firestore (NoSQL)
-- Firebase Storage
-
-## Contribución
-
-1. Fork del proyecto
-2. Crear rama para nueva característica (`git checkout -b feature/nueva-caracteristica`)
-3. Commit de cambios (`git commit -am 'Agregar nueva característica'`)
-4. Push a la rama (`git push origin feature/nueva-caracteristica`)
-5. Crear Pull Request
-
-## Licencia
-
-Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
 
 ## Contacto
 

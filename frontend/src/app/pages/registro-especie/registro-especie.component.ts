@@ -60,6 +60,5 @@ import { HeaderComponent } from '../header/header.component';
   styleUrls: ['./registro-especie.component.scss']
 })
 export class RegistroEspecieComponent {
-  // ❌ ELIMINAR: Ya no necesitamos Router ni métodos
-  // El EspeciesFormComponent maneja su propia navegación
+
 }

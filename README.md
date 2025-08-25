@@ -58,7 +58,7 @@ ProyectoLP_2P/
 - Composer
 - Angular CLI (`npm install -g @angular/cli`)
 
-### Configuración del Proyecto
+### Pasos para ejecutar el proyecto
 
 1. **Clonar el repositorio**
    ```bash
@@ -66,22 +66,29 @@ ProyectoLP_2P/
    cd ProyectoLP_2P
    ```
 
-2. **Instalar dependencias**
+2. **Instalar dependencias frontend**
    ```bash
+   cd ProyectoLP_2P\frontend
    npm run install-all
    ```
 
-### Pasos para ejecutar el proyecto
+3. **Instalar dependencias backend**
+   ```bash
+   cd ProyectoLP_2P\backend
+   composer install
+   ```
 
-```bash
-# Comandos backend, debe de estar en la carpeta /backend
-composer install
-php -S localhost:8000 -t public/
+4. **Levantar servidor backend**
+   ```bash
+   cd ProyectoLP_2P\backend
+   php -S localhost:8000 -t public/
+   ```
 
-# Comandos frontend, debe de estar en la carpeta /frontend
-npm install #(si no ha instalado las dependencias previamente)
-ng serve
-```
+5. **Levantar servidor frontend**
+   ```bash
+   cd ProyectoLP_2P\backend
+   ng serve
+   ```
 
 ## Funcionalidades Principales
 
@@ -119,6 +126,6 @@ ng serve
 
 ## Contacto
 
-**Proyecto Lenguajes de Programación - Universidad**
+**Proyecto Lenguajes de Programación - ESPOL**
 - Repositorio: https://github.com/NLindao2004/ProyectoLP_2P
 - Desarrollado por: Benites Alex, Lindao Nehemias, Zavala Fernando
